@@ -9,6 +9,7 @@
   "imports": {
     "@/": "./src/",
     "@utils/": "./src/utils/",
+    "@utils": "./src/utils/index.ts",
     "@std/assert": "jsr:@std/assert@1"
   },
   "lint": {
