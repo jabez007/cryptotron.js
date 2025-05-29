@@ -48,3 +48,40 @@ export function gcd(a: number, b: number): number {
   }
   return gcd(b, a % b);
 }
+
+const alphaLower = [...Array(26)]
+  .map((_, i) => String.fromCharCode(97 + i))
+  .join('');
+
+function getUniqueCharacters(input: string) {
+  let unique = '';
+  for (let i = 0; i < input.length; i += 1) {
+    if (!unique.includes(input[i])) {
+      unique += input[i];
+    }
+  }
+  return unique;
+}
+
+export function buildCipherSquare(keyword: string) {
+  const key = getUniqueCharacters(`${keyword}${alphaLower}`).replace(
+    /[jJ]/g,
+    '',
+  );
+  const cipherSquare = new Array(5)
+    .fill(null)
+    .map(() => new Array(5).fill(null));
+  for (let i = 0; i < key.length; i += 1) {
+    const char = key.charAt(i);
+    const column = i % 5;
+    const row = Math.floor(i / 5);
+    cipherSquare[row][column] = char;
+  }
+  return cipherSquare;
+}
+
+/*
+const alphaUpper = [...Array(26)]
+  .map((_, i) => String.fromCharCode(65 + i))
+  .join('');
+*/
