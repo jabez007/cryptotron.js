@@ -14,7 +14,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPLv3",
   "description": "",
   "devDependencies": {
     "@types/mocha": "^10.0.10",
