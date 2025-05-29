@@ -1,25 +1,26 @@
 import { getCharOffset, modulo, re } from '@utils';
 
-export function encrypt(key: { alpha: number; beta: number }) {
-  if (!(Number.isInteger(key.alpha) && Number.isInteger(key.beta))) {
-    throw new Error('Both key values must be integers');
-  }
-
+export function encrypt(key: { primer: string }) {
   return (plainText: string): string => {
+    const autokey = `${key.primer}${plainText}`.replace(/[^A-Za-z]/g, '');
+
     let cipherText = '';
+    let j = 0;
     for (let i = 0; i < plainText.length; i += 1) {
       const char = plainText.charAt(i);
 
       if (re.test(char)) {
         const offset = getCharOffset(char);
+        const keyOffset = getCharOffset(autokey.charAt(j));
 
         cipherText += String.fromCharCode(
           modulo(
-            key.alpha * (plainText.charCodeAt(i) - offset) + key.beta,
+            (plainText.charCodeAt(i) - offset) +
+              (autokey.charCodeAt(j) - keyOffset),
             26,
-          ) +
-            offset,
+          ) + offset,
         );
+        j += 1;
       } else {
         cipherText += char;
       }

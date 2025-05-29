@@ -1,4 +1,4 @@
-import { modulo, re } from '@utils';
+import { getCharOffset, modulo, re } from '@utils';
 
 function findInverse(a: number): number {
   if (!Number.isInteger(a)) {
@@ -18,7 +18,7 @@ export function decrypt(key: { alpha: number; beta: number }) {
     throw new Error('Both key values must be integers');
   }
 
-  return (cipherText: string) => {
+  return (cipherText: string): string => {
     const inverse = findInverse(key.alpha);
     if (Number.isNaN(inverse)) {
       throw new Error(`No inverse found for alpha value ${key.alpha}`);
@@ -26,11 +26,10 @@ export function decrypt(key: { alpha: number; beta: number }) {
 
     let plainText = '';
     for (let i = 0; i < cipherText.length; i += 1) {
-      if (re.test(cipherText.charAt(i))) {
-        const offset =
-          (cipherText.charAt(i) == cipherText.charAt(i).toUpperCase())
-            ? 65
-            : 97;
+      const char = cipherText.charAt(i);
+
+      if (re.test(char)) {
+        const offset = getCharOffset(char);
 
         plainText += String.fromCharCode(
           modulo(
@@ -40,7 +39,7 @@ export function decrypt(key: { alpha: number; beta: number }) {
             offset,
         );
       } else {
-        plainText += cipherText.charAt(i);
+        plainText += char;
       }
     }
     return plainText;
