@@ -3,6 +3,7 @@ import { getCharOffset, modulo, re } from '@utils';
 export function decrypt(key: { primer: string }) {
   return (cipherText: string): string => {
     let autokey = key.primer.replace(/[^A-Za-z]/g, '');
+
     let plainText = '';
     let j = 0;
     for (let i = 0; i < cipherText.length; i += 1) {
