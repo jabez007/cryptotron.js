@@ -49,11 +49,11 @@ export function gcd(a: number, b: number): number {
   return gcd(b, a % b);
 }
 
-const alphaLower = [...Array(26)]
+export const alphaLower = [...Array(26)]
   .map((_, i) => String.fromCharCode(97 + i))
   .join('');
 
-function getUniqueCharacters(input: string) {
+export function getUniqueCharacters(input: string) {
   let unique = '';
   for (let i = 0; i < input.length; i += 1) {
     if (!unique.includes(input[i])) {
@@ -64,10 +64,8 @@ function getUniqueCharacters(input: string) {
 }
 
 export function buildCipherSquare(keyword: string) {
-  const key = getUniqueCharacters(`${keyword}${alphaLower}`).replace(
-    /[jJ]/g,
-    '',
-  );
+  const key = getUniqueCharacters(`${keyword.toLowerCase()}${alphaLower}`)
+    .replace(/[j]/g, '');
   const cipherSquare = new Array(5)
     .fill(null)
     .map(() => new Array(5).fill(null));
