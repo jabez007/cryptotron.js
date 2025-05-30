@@ -39,7 +39,7 @@ git clone https://github.com/jabez007/cryptotron.js.git
 
 ---
 
-🚀 Usage
+## 🚀 Usage
 
 ```js
 const { caesar, vigenere } = require("@jabez007/cryptotron.js");
