@@ -18,14 +18,16 @@ function algorithm(keyword: string) {
       j = 0; // make sure j starts fresh
     }
 
+    const _j = j % cleanedKeyword.length;
+
     const offset = getCharOffset(char);
     const keyOffset = getCharOffset(
-      cleanedKeyword.charAt(j % cleanedKeyword.length),
+      cleanedKeyword.charAt(_j),
     );
 
     const result = String.fromCharCode(
       modulo(
-        (cleanedKeyword.charCodeAt(j % cleanedKeyword.length) - keyOffset) -
+        (cleanedKeyword.charCodeAt(_j) - keyOffset) -
           (text.charCodeAt(index) - offset),
         26,
       ) + offset,
