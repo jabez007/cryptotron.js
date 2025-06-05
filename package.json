@@ -6,10 +6,12 @@
     "test": "cross-env TSX_TSCONFIG_PATH='./tsconfig.test.json' mocha",
     "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json",
     "build:esm": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
     "build": "npm run build:cjs && npm run build:esm",
     "prepublishOnly": "npm run build",
     "clean": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true })\"",
     "prebuild": "npm run clean",
+    "postbuild": "npm run build:types",
     "lint": "eslint . --ext .ts,.js --fix"
   },
   "keywords": [],
@@ -29,12 +31,13 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
-  "types": "./dist/cjs/index.d.ts",
   "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "files": [
