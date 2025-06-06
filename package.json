@@ -1,6 +1,7 @@
 {
   "name": "cryptotron",
   "version": "0.0.0",
+  "type": "module",
   "main": "./dist/cjs/index.js",
   "scripts": {
     "test": "cross-env TSX_TSCONFIG_PATH='./tsconfig.test.json' mocha",
