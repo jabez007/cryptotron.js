@@ -1,6 +1,9 @@
 {
-  "name": "cryptotron",
+  "name": "@jabez007/cryptotron.js",
   "version": "0.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/cjs/index.js",
   "scripts": {
@@ -16,7 +19,7 @@
     "lint": "eslint . --ext .ts,.js --fix"
   },
   "keywords": [],
-  "author": "",
+  "author": "jabez007",
   "license": "GPLv3",
   "description": "",
   "devDependencies": {
