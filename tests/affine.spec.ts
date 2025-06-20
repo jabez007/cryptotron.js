@@ -18,7 +18,7 @@ describe('Affine', function () {
     });
 
     it('should handle mixed case letters', function () {
-      assert.equal(encrypt({alpha: 7, beta: 3})("HeLLo WoRlD"), "KxOOh PhUoG");
+      assert.equal(encrypt({alpha: 7, beta: 3})("HeLLo WoRlD"), "AfCCx BxScY");
     });
 
     it('should handle strings with numbers and special characters', function () {
@@ -167,7 +167,7 @@ describe('Affine', function () {
     });
 
     it('should handle mixed case letters', function () {
-      assert.equal(decrypt({alpha: 7, beta: 3})("KxOOh PhUoG"), "HeLLo WoRlD");
+      assert.equal(decrypt({alpha: 7, beta: 3})("AfCCx BxScY"), "HeLLo WoRlD");
     });
 
     it('should handle strings with numbers and special characters', function () {

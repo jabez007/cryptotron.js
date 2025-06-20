@@ -18,7 +18,7 @@ describe('Caesar', function () {
     });
 
     it('should handle mixed case letters', function () {
-      assert.equal(encrypt({shift: 7})("HeLLo WoRlD"), "OlSSV dVYSK");
+      assert.equal(encrypt({shift: 7})("HeLLo WoRlD"), "OlSSv DvYsK");
     });
 
     it('should handle shifts that wrap around the alphabet', function () {
@@ -67,7 +67,7 @@ describe('Caesar', function () {
     });
 
     it('should handle mixed case letters', function () {
-      assert.equal(decrypt({shift: 7})("OlSSV dVYSK"), "HeLLo WoRlD");
+      assert.equal(decrypt({shift: 7})("OlSSV dVYSK"), "HeLLO wORLD");
     });
 
     it('should handle shifts that wrap around the alphabet', function () {
