@@ -13,6 +13,7 @@ import { alphaLower, getUniqueCharacters, transform } from '@utils';
  * @param {Object} key - The decryption key (must match encryption key)
  * @param {string} key.cipherAlphabet - Same 26-letter substitution alphabet used to encrypt
  * @returns {Function} A function that takes ciphertext and returns plaintext
+ * @throws {Error} If the cipher alphabet doesn't contain exactly 26 unique characters
  * @example
  * // Decrypting with the same scrambled alphabet:
  * const decryptMessage = decrypt({ cipherAlphabet: "XMQKGBDFYHOWITJVZCRNUALSEP" });
@@ -24,6 +25,12 @@ export function decrypt(key: { cipherAlphabet: string }) {
   const cipherAlphabet = getUniqueCharacters(
     `${key.cipherAlphabet.toLowerCase()}${plainAlphabet}`,
   );
+
+  if (cipherAlphabet.length !== 26) {
+    throw new Error(
+      `Cipher alphabet must contain exactly 26 unique characters. Received ${cipherAlphabet.length} unique characters from '${key.cipherAlphabet}'`,
+    );
+  }
 
   return transform((char) => {
     const pos = cipherAlphabet.indexOf(char.toLowerCase());
