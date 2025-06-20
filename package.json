@@ -18,10 +18,17 @@
     "postbuild": "npm run build:types",
     "lint": "eslint . --ext .ts,.js --fix"
   },
-  "keywords": [],
+  "keywords": [
+    "cryptography",
+    "ciphers",
+    "encryption",
+    "decryption",
+    "typescript",
+    "classical-ciphers"
+  ],
   "author": "jabez007",
   "license": "GPLv3",
-  "description": "",
+  "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.24",
