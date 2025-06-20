@@ -14,6 +14,7 @@ import { alphaLower, getUniqueCharacters, transform } from '@utils';
  * @param {Object} key - The encryption key
  * @param {string} key.cipherAlphabet - 26 unique letters for substitution (can include unused letters)
  * @returns {Function} A function that takes plaintext and returns ciphertext
+ * @throws {Error} If the cipher alphabet doesn't contain at least 26 unique characters
  * @example
  * // Using a scrambled alphabet:
  * const encryptMessage = encrypt({ cipherAlphabet: "XMQKGBDFYHOWITJVZCRNUALSEP" });
@@ -25,6 +26,12 @@ export function encrypt(key: { cipherAlphabet: string }) {
   const cipherAlphabet = getUniqueCharacters(
     `${key.cipherAlphabet.toLowerCase()}${plainAlphabet}`,
   );
+
+  if (cipherAlphabet.length < 26) {
+    throw new Error(
+      `Cipher alphabet must contain at least 26 unique characters. Received ${cipherAlphabet.length} unique characters from '${key.cipherAlphabet}'`,
+    );
+  }
 
   return transform((char) => {
     const pos = plainAlphabet.indexOf(char.toLowerCase());
