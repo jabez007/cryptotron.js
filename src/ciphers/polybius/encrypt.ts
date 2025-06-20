@@ -36,7 +36,17 @@ export function encrypt(key: { keyword: string; cipherChars: string }) {
 
     return transform((char) => {
       const row = keySquare.findIndex((r) => r.includes(char));
+      
+      if (row === -1) {
+        throw new Error(`Character '${char}' not found in cipher square`);
+      }
+      
       const column = keySquare[row].findIndex((c) => c === char);
+      
+      if (column === -1) {
+        throw new Error(`Character '${char}' not found in row ${row} of cipher square`);
+      }
+      
       return `${key.cipherChars.charAt(row)}${key.cipherChars.charAt(column)}`;
     })(plaintext);
   };
