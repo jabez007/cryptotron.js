@@ -31,6 +31,11 @@ export function encrypt(key: { primer: string }) {
     let j = 0;
 
     return transform((char, index, plain) => {
+      // Ensure j doesn't exceed autokey bounds
+      if (j >= autokey.length) {
+        throw new Error('Autokey length exceeded during encryption');
+      }
+
       const offset = getCharOffset(char);
       const keyOffset = getCharOffset(autokey.charAt(j));
 
