@@ -42,10 +42,27 @@ export function decrypt(key: { keyword: string; cipherChars: string }) {
           String(cipherText.charAt(i)),
         );
         i += 1;
+        
+        // Check if there's a next character for the pair
+        if (i >= cipherText.length) {
+          // Incomplete pair - append the first character as is and break
+          plaintext += cipherText.charAt(i - 1);
+          break;
+        }
+        
         const column = key.cipherChars.indexOf(
           String(cipherText.charAt(i)),
         );
-        plaintext += keySquare[row][column];
+        
+        // Check if the second character is also a valid cipher character
+        if (column === -1) {
+          // Second character is not a cipher character - treat first as standalone
+          plaintext += cipherText.charAt(i - 1);
+          i -= 1; // Back up to process the current character in next iteration
+        } else {
+          // Valid pair - decrypt normally
+          plaintext += keySquare[row][column];
+        }
       } else {
         plaintext += cipherText.charAt(i);
       }
