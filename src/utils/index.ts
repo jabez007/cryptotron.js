@@ -43,6 +43,15 @@ export function gcd(a: number, b: number): number {
     throw new Error('Both input values must be integers');
   }
 
+  // Convert to absolute values to handle negative inputs
+  a = Math.abs(a);
+  b = Math.abs(b);
+
+  // Handle edge case when a is 0
+  if (a === 0) {
+    return b;
+  }
+
   if (!b) {
     return a;
   }
