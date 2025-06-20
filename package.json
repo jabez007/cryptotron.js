@@ -1,0 +1,67 @@
+{
+  "name": "@jabez007/cryptotron.js",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "scripts": {
+    "test": "cross-env TSX_TSCONFIG_PATH='./tsconfig.test.json' mocha",
+    "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build": "npm run build:cjs && npm run build:esm",
+    "prepublishOnly": "npm run build",
+    "clean": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true })\"",
+    "prebuild": "npm run clean",
+    "postbuild": "npm run build:types",
+    "lint": "eslint . --ext .ts,.js --fix"
+  },
+  "keywords": [
+    "cryptography",
+    "ciphers",
+    "encryption",
+    "decryption",
+    "typescript",
+    "classical-ciphers"
+  ],
+  "author": "jabez007",
+  "license": "GPLv3",
+  "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.24",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.1",
+    "mocha": "^11.5.0",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jabez007/cryptotron.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jabez007/cryptotron.js/issues"
+  },
+  "homepage": "https://github.com/jabez007/cryptotron.js#readme"
+}
