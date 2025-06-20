@@ -25,7 +25,7 @@ import { buildCipherSquare, transform } from '@utils';
 export function encrypt(key: { keyword: string; cipherChars: string }) {
   if (key.cipherChars.length !== 5) {
     throw new Error(
-      `There must be exactly 5 cipher character. Received '${key.cipherChars}' for cipher characters`,
+      `There must be exactly 5 cipher characters. Received '${key.cipherChars}' for cipher characters`,
     );
   }
 
