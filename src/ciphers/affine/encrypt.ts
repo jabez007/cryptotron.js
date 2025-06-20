@@ -1,4 +1,4 @@
-import { getCharOffset, modulo, transform } from '@utils';
+import { getCharOffset, modulo, transform, gcd } from '@utils';
 
 /**
  * Encrypts a message using the Affine cipher.
@@ -23,10 +23,15 @@ import { getCharOffset, modulo, transform } from '@utils';
  * @param {number} key.beta - Must be an integer, added after multiplication.
  * @returns {Function} A function that transforms a plaintext message into its encrypted form.
  * @throws {Error} If `alpha` or `beta` are not integers.
+ * @throws {Error} If `alpha` is not coprime with 26.
  */
 export function encrypt(key: { alpha: number; beta: number }) {
   if (!(Number.isInteger(key.alpha) && Number.isInteger(key.beta))) {
     throw new Error('Both key values must be integers');
+  }
+
+  if (gcd(key.alpha, 26) !== 1) {
+    throw new Error(`No inverse found for alpha value ${key.alpha}`);
   }
 
   return transform((char, index, plain) => {
