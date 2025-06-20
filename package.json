@@ -53,6 +53,7 @@
   },
   "files": [
     "dist/**/*",
+    "LICENSE",
     "README.md"
   ],
   "repository": {
