@@ -28,6 +28,11 @@ export function decrypt(key: { cipherAlphabet: string }) {
   return transform((char) => {
     const pos = cipherAlphabet.indexOf(char.toLowerCase());
 
+    // If character not found in cipher alphabet, return it unchanged
+    if (pos === -1) {
+      return char;
+    }
+
     if (char.toUpperCase() === char) {
       return plainAlphabet[pos].toUpperCase();
     }
