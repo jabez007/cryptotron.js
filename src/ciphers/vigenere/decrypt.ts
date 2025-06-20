@@ -16,6 +16,7 @@ import { getCharOffset, modulo, transform } from '@utils';
  * @param {Object} key - The decryption key
  * @param {string} key.keyword - Same secret word used for encryption
  * @returns {Function} A function that takes ciphertext and returns plaintext
+ * @throws {Error} If the keyword contains no alphabetic characters
  * @example
  * // Decrypting a spy message:
  * const decryptMessage = decrypt({ keyword: "KEY" });
@@ -23,6 +24,10 @@ import { getCharOffset, modulo, transform } from '@utils';
  */
 export function decrypt(key: { keyword: string }) {
   const cleanedKeyword = key.keyword.replace(/[^A-Za-z]/g, '');
+
+  if (cleanedKeyword.length === 0) {
+    throw new Error('Keyword must contain at least one alphabetic character');
+  }
 
   let j = 0;
   return transform((char, index, cipher) => {
