@@ -18,11 +18,13 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
     decryptColumnChar: (shift, charCode) => (charCode - shift + 26) % 26,
     decryptFull: decrypt,
     keyFactory: (keyword) => {
+      // Build keyText from repeating keyword to satisfy decrypt requirement
       let keyText = '';
       while (keyText.length < ciphertext.length) {
         keyText += keyword;
       }
       return { keyText: keyText.substring(0, ciphertext.length) };
     },
+    periodic: true, // Use periodic for repeating keyword assumption
   });
 }

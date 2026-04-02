@@ -20,7 +20,7 @@ import { getCharOffset, modulo, transform } from '@utils';
  *
  * @param {string} keyword - The secret word used to scramble the message
  * @returns {Function} A function that transforms each character of the text
- * @throws {Error} If the keyword has less than 2 usable letters
+ * @throws {Error} If the usable part of the keyword is empty (length 0)
  */
 function algorithm(keyword: string) {
   const cleanedKeyword = keyword.replace(/[^A-Za-z]/g, '');

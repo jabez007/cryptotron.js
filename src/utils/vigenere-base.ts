@@ -1,4 +1,4 @@
-import { getQuadgramScorer, normalize, scoreMonograms } from './cryptanalysis.ts';
+import { getScorer, normalize, scoreMonograms } from './cryptanalysis.ts';
 
 export interface BaseCrackOptions {
   ciphertext: string;
@@ -8,6 +8,7 @@ export interface BaseCrackOptions {
   decryptColumnChar: (shift: number, charCode: number) => number;
   decryptFull: (key: any) => (text: string) => string;
   keyFactory: (keyword: string) => any;
+  periodic?: boolean;
 }
 
 /**
@@ -22,10 +23,17 @@ export function baseCrack(options: BaseCrackOptions) {
     decryptColumnChar,
     decryptFull,
     keyFactory,
+    periodic = true,
   } = options;
 
-  const scorer = getQuadgramScorer();
+  // Validate bounds early
+  if (minKeyLength < 1 || maxKeyLength < 1 || minKeyLength > maxKeyLength) {
+    throw new Error(`Invalid key length bounds: min=${minKeyLength}, max=${maxKeyLength}`);
+  }
+
   const normalized = normalize(ciphertext);
+  // Conditional fallback for short ciphertexts
+  const scorer = getScorer(Math.min(4, normalized.length));
   
   let bestKeyword = initialBestKeyword;
   let bestOverallScore = -Infinity;
@@ -37,8 +45,16 @@ export function baseCrack(options: BaseCrackOptions) {
       const shiftsWithScores: { shift: number; score: number }[] = [];
       
       let column = '';
-      for (let j = i; j < normalized.length; j += klen) {
-        column += normalized[j];
+      if (periodic) {
+        for (let j = i; j < normalized.length; j += klen) {
+          column += normalized[j];
+        }
+      } else {
+        // Build contiguous slices for non-periodic (e.g. Running Key)
+        const sliceLen = Math.floor(normalized.length / klen);
+        const start = i * sliceLen;
+        const end = (i === klen - 1) ? normalized.length : (i + 1) * sliceLen;
+        column = normalized.substring(start, end);
       }
       
       // Fix for empty column alignment issue
@@ -73,6 +89,7 @@ export function baseCrack(options: BaseCrackOptions) {
         }
         
         const plaintext = decryptFull(keyFactory(keyword))(ciphertext);
+        // Use normalized plaintext for scoring to be consistent
         const score = scorer.score(plaintext);
         
         if (score > bestOverallScore) {
@@ -95,9 +112,10 @@ export function baseCrack(options: BaseCrackOptions) {
     }
   }
 
-  const finalPlaintext = decryptFull(keyFactory(bestKeyword))(ciphertext);
+  const finalKey = keyFactory(bestKeyword);
+  const finalPlaintext = decryptFull(finalKey)(ciphertext);
   return {
-    key: keyFactory(bestKeyword),
+    key: finalKey,
     plaintext: finalPlaintext,
   };
 }

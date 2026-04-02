@@ -69,11 +69,28 @@ export class Scorer {
 }
 
 // Singleton instances for common n-gram types
-let quadgramScorer: Scorer | null = null;
+let monogramsScorer: Scorer | null = null;
+let bigramsScorer: Scorer | null = null;
+let trigramsScorer: Scorer | null = null;
+let quadgramsScorer: Scorer | null = null;
+
+export function getScorer(n: number): Scorer {
+  if (n <= 1) {
+    if (!monogramsScorer) monogramsScorer = new Scorer('monograms');
+    return monogramsScorer;
+  }
+  if (n === 2) {
+    if (!bigramsScorer) bigramsScorer = new Scorer('bigrams');
+    return bigramsScorer;
+  }
+  if (n === 3) {
+    if (!trigramsScorer) trigramsScorer = new Scorer('trigrams');
+    return trigramsScorer;
+  }
+  if (!quadgramsScorer) quadgramsScorer = new Scorer('quadgrams');
+  return quadgramsScorer;
+}
 
 export function getQuadgramScorer(): Scorer {
-  if (!quadgramScorer) {
-    quadgramScorer = new Scorer('quadgrams');
-  }
-  return quadgramScorer;
+  return getScorer(4);
 }
