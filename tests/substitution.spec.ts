@@ -1,22 +1,34 @@
 import assert from 'assert';
-import { encrypt, decrypt } from '../src/ciphers/substitution'
+import { encrypt, decrypt, crack } from '../src/ciphers/substitution';
 
 describe('Substitution', function () {
   
   describe('#encrypt', function () {
-    
     it('should return encrypted message', function () {
-      assert.equal(encrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Hello World"), "Itssg Vgksr");
+      assert.strictEqual(encrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Hello World"), "Itssg Vgksr");
     });
-  
   });
 
   describe('#decrypt', function () {
-    
     it('should return decrypted message', function () {
-      assert.equal(decrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Itssg Vgksr"), "Hello World");
+      assert.strictEqual(decrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Itssg Vgksr"), "Hello World");
     });
-  
+  });
+
+  describe('#crack', function () {
+    this.timeout(60000);
+
+    it('should recover most of the message with enough ciphertext', function () {
+      const originalText = `THE SIMPLE SUBSTITUTION CIPHER IS A METHOD OF ENCRYPTION BY WHICH UNITS OF PLAINTEXT ARE REPLACED WITH CIPHERTEXT, ACCORDING TO A FIXED SYSTEM; THE UNITS MAY BE SINGLE LETTERS, PAIRS OF LETTERS, TRIPLETS OF LETTERS, MIXTURES OF THE ABOVE, AND SO FORTH. THE RECEIVER DECIPHERS THE TEXT BY PERFORMING THE INVERSE SUBSTITUTION. SUBSTITUTION CIPHERS CAN BE COMPARED WITH TRANSPOSITION CIPHERS. IN A TRANSPOSITION CIPHER, THE UNITS OF THE PLAINTEXT ARE REARRANGED IN A DIFFERENT AND USUALLY QUITE COMPLEX ORDER, BUT THE UNITS THEMSELVES ARE LEFT UNCHANGED. BY CONTRAST, IN A SUBSTITUTION CIPHER, THE UNITS OF THE PLAINTEXT ARE RETAINED IN THE SAME SEQUENCE IN THE CIPHERTEXT, BUT THE UNITS THEMSELVES ARE ALTERED.`;
+      const cipherAlphabet = "PHQGIUMEAYLNFJKRZVSOXDTBCW";
+      const ciphertext = encrypt({ cipherAlphabet })(originalText);
+      
+      const result = crack(ciphertext, 10, 15000);
+      
+      const decrypted = result.plaintext.toUpperCase();
+      assert.ok(decrypted.includes("SUBSTITUTION"), `Expected 'SUBSTITUTION' in: ${decrypted}`);
+      assert.ok(decrypted.includes("TRANSPOSITION"), `Expected 'TRANSPOSITION' in: ${decrypted}`);
+      assert.ok(decrypted.includes("CIPHERTEXT"), `Expected 'CIPHERTEXT' in: ${decrypted}`);
+    });
   });
 });
-

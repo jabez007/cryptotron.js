@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { encrypt, decrypt } from '../src/ciphers/affine';
+import { encrypt, decrypt, crack } from '../src/ciphers/affine';
 
 describe('Affine', function () {
   
@@ -299,5 +299,31 @@ describe('Affine', function () {
       assert.equal(decrypt({alpha: 25, beta: 0})("AZY"), "ABC");
     });
   
+  });
+
+  describe('#crack', function () {
+    it('should recover the key and decrypt a long message', function () {
+      const originalText = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+      const alpha = 5;
+      const beta = 8;
+      const ciphertext = encrypt({ alpha, beta })(originalText);
+      const result = crack(ciphertext);
+      
+      assert.strictEqual(result.key.alpha, alpha);
+      assert.strictEqual(result.key.beta, beta);
+      assert.strictEqual(result.plaintext, originalText);
+    });
+
+    it('should handle messages with punctuation and mixed case', function () {
+      const originalText = "Classical cryptography is fascinating, don't you think?";
+      const alpha = 7;
+      const beta = 3;
+      const ciphertext = encrypt({ alpha, beta })(originalText);
+      const result = crack(ciphertext);
+      
+      assert.strictEqual(result.key.alpha, alpha);
+      assert.strictEqual(result.key.beta, beta);
+      assert.strictEqual(result.plaintext, originalText);
+    });
   });
 });

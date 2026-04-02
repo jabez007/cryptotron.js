@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { encrypt, decrypt } from '../src/ciphers/caesar';
+import { encrypt, decrypt, crack } from '../src/ciphers/caesar';
 
 describe('Caesar', function () {
   
@@ -99,5 +99,27 @@ describe('Caesar', function () {
       assert.equal(decrypt({shift: 0})("Hello World"), "Hello World");
     });
   
+  });
+
+  describe('#crack', function () {
+    it('should recover the key and decrypt a long message', function () {
+      const originalText = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+      const shift = 7;
+      const ciphertext = encrypt({ shift })(originalText);
+      const result = crack(ciphertext);
+      
+      assert.strictEqual(result.key.shift, shift);
+      assert.strictEqual(result.plaintext, originalText);
+    });
+
+    it('should handle messages with punctuation and mixed case', function () {
+      const originalText = "Classical cryptography is fascinating, don't you think?";
+      const shift = 13;
+      const ciphertext = encrypt({ shift })(originalText);
+      const result = crack(ciphertext);
+      
+      assert.strictEqual(result.key.shift, shift);
+      assert.strictEqual(result.plaintext, originalText);
+    });
   });
 });

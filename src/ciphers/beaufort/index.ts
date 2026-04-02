@@ -86,3 +86,5 @@ export function encrypt(key: { keyword: string }) {
 export function decrypt(key: { keyword: string }) {
   return algorithm(key.keyword);
 }
+
+export * from './crack.ts';
