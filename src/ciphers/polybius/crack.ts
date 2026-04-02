@@ -1,5 +1,4 @@
-import { decrypt } from './index.ts';
-import { getQuadgramScorer, normalize } from '../../utils/cryptanalysis.ts';
+import { getQuadgramScorer } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 /**
@@ -34,10 +33,11 @@ export function crack(ciphertext: string) {
       const row = parseInt(text[i]) - 1;
       const col = parseInt(text[i+1]) - 1;
       if (isNaN(row) || isNaN(col) || row < 0 || row > 4 || col < 0 || col > 4) {
-        // Skip non-digit characters and handle one char at a time if they are not pairs
-        // But Polybius expects pairs.
+        // In decryptWithGrid: when a non-digit (or an invalid pair) is encountered
+        // we append the single character and decrement i so the loop's i += 2 yields a net
+        // advance of 1 (effectively consuming one char instead of a pair).
         result += text[i];
-        i--; // adjust because we only used one char
+        i--; 
         continue;
       }
       result += grid[row * 5 + col];
@@ -77,8 +77,6 @@ export function crack(ciphertext: string) {
     }
   }
 
-  // We can't easily recover the "keyword" from the grid, so we return the grid as the key or just an empty keyword.
-  // Actually, the library expects a keyword. We'll return the recovered grid as a "grid" in the key.
   return {
     key: { grid: bestGrid },
     plaintext: decryptWithGrid(ciphertext, bestGrid),
