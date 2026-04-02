@@ -26,9 +26,9 @@ export * from './crack.ts';
  */
 function algorithm(keyword: string) {
   const cleanedKeyword = keyword.replace(/[^A-Za-z]/g, '');
-  if (cleanedKeyword.length < 1) {
+  if (cleanedKeyword.length === 0) {
     throw new Error(
-      `Usable part of keyword must have length greater than 0. Usable part of given keyword was ${cleanedKeyword}`,
+      `Usable part of keyword must have length greater than 0. Usable part of given keyword was '${cleanedKeyword}'`,
     );
   }
 
