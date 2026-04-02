@@ -26,9 +26,10 @@ export function baseCrack(options: BaseCrackOptions) {
     periodic = true,
   } = options;
 
-  // Validate bounds early
-  if (minKeyLength < 1 || maxKeyLength < 1 || minKeyLength > maxKeyLength) {
-    throw new Error(`Invalid key length bounds: min=${minKeyLength}, max=${maxKeyLength}`);
+  // Validate bounds early with strict checks for finite integers
+  if (!Number.isInteger(minKeyLength) || !Number.isInteger(maxKeyLength) || 
+      minKeyLength < 1 || maxKeyLength < 1 || minKeyLength > maxKeyLength) {
+    throw new Error(`Invalid key length bounds: min=${minKeyLength}, max=${maxKeyLength}. Both must be integers >= 1 and min <= max.`);
   }
 
   const normalized = normalize(ciphertext);

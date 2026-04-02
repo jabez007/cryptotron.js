@@ -1,5 +1,7 @@
 import { getCharOffset, modulo, transform } from '@utils';
 
+export * from './crack.ts';
+
 /**
  * Creates a transformation function that can encrypt or decrypt text
  * using the Beaufort cipher algorithm.
@@ -86,5 +88,3 @@ export function encrypt(key: { keyword: string }) {
 export function decrypt(key: { keyword: string }) {
   return algorithm(key.keyword);
 }
-
-export * from './crack.ts';
