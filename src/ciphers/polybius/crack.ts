@@ -8,9 +8,10 @@ import { alphaLower } from '../../utils/index.ts';
  * Assumes default cipherChars "12345" and that I/J share a cell.
  * 
  * @param {string} ciphertext - The text to crack
+ * @param {Function} [rng] - Optional random number generator (default Math.random)
  * @returns {Object} The recovered key (grid as keyword) and decrypted plaintext
  */
-export function crack(ciphertext: string) {
+export function crack(ciphertext: string, rng: () => number = Math.random) {
   if (typeof ciphertext !== 'string') {
     throw new TypeError(`Expected ciphertext to be a string, received ${typeof ciphertext}`);
   }
@@ -37,10 +38,10 @@ export function crack(ciphertext: string) {
   let bestGridArr = alphabet25.split('');
   let bestOverallScore = -Infinity;
 
-  const shuffle = (str: string) => {
+  const shuffle = (str: string, random: () => number) => {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
@@ -70,13 +71,13 @@ export function crack(ciphertext: string) {
   };
 
   for (let r = 0; r < 10; r++) {
-    const currentGridArr = shuffle(alphabet25);
+    const currentGridArr = shuffle(alphabet25, rng);
     let currentScore = scorer.score(decryptWithGrid(digitsOnly, currentGridArr.join('')));
 
     for (let i = 0; i < 10000; i++) {
-      const a = Math.floor(Math.random() * 25);
-      let b = Math.floor(Math.random() * 25);
-      while (a === b) b = Math.floor(Math.random() * 25);
+      const a = Math.floor(rng() * 25);
+      let b = Math.floor(rng() * 25);
+      while (a === b) b = Math.floor(rng() * 25);
 
       // Perform in-place swap to reduce allocations as requested
       [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
