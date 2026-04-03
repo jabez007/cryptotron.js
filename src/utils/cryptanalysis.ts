@@ -142,6 +142,9 @@ let quadgramsScorer: Scorer | null = null;
  * @returns {Scorer} The Scorer instance
  */
 export function getScorer(n: number): Scorer {
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 1) {
+    throw new TypeError(`Invalid n-gram length: ${n}. Must be a finite integer >= 1.`);
+  }
   if (n <= 1) {
     if (!monogramsScorer) monogramsScorer = new Scorer('monograms');
     return monogramsScorer;
