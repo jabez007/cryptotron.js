@@ -12,8 +12,8 @@ import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
  */
 export function crack(ciphertext: string) {
   const normalized = normalize(ciphertext);
-  // Adaptive scorer selection for short ciphertexts
-  const scorer = getScorer(Math.min(4, normalized.length));
+  // Clamping n to 1..4 range to avoid passing 0 to getScorer
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
   let bestShift = 0;
   let bestScore = -Infinity;

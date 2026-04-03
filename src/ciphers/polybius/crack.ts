@@ -15,22 +15,28 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
   if (typeof ciphertext !== 'string') {
     throw new TypeError(`Expected ciphertext to be a string, received ${typeof ciphertext}`);
   }
-  // Hoist digits-only normalization as requested
-  const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
+
+  // Compute actual adjacent valid pairs from original ciphertext
+  let adjacentPairCount = 0;
+  for (let i = 0; i < ciphertext.length - 1; i++) {
+    if (/[1-5]/.test(ciphertext[i]) && /[1-5]/.test(ciphertext[i+1])) {
+      adjacentPairCount++;
+      i++; // Skip the second part of the pair
+    }
+  }
   
   const alphabet25 = alphaLower.replace('j', '');
 
   // Check for incomplete polybius pairs
-  if (digitsOnly.length < 2) {
+  if (adjacentPairCount === 0) {
     return {
       key: { keyword: alphabet25, cipherChars: "12345" },
       plaintext: ciphertext,
     };
   }
 
-  // Polybius output length is half of ciphertext (pairs), use synced digitsOnly length
-  // Ensure n is at least 1 for getScorer
-  const scorer = getScorer(Math.max(1, Math.min(4, Math.floor(digitsOnly.length / 2))));
+  // Seed getScorer with adjacentPairCount
+  const scorer = getScorer(Math.max(1, Math.min(4, adjacentPairCount)));
   
   // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
   // If we assume cipherChars are "12345", we can recover the 5x5 grid.
@@ -38,7 +44,7 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
   let bestGridArr = alphabet25.split('');
   let bestOverallScore = -Infinity;
 
-  const shuffle = (str: string, random: () => number) => {
+  const shuffle = (str: string, random: () => number): string[] => {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
@@ -72,7 +78,8 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
 
   for (let r = 0; r < 10; r++) {
     const currentGridArr = shuffle(alphabet25, rng);
-    let currentScore = scorer.score(decryptWithGrid(digitsOnly, currentGridArr.join('')));
+    // Use original ciphertext for search/scoring to ensure consistency
+    let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
     for (let i = 0; i < 10000; i++) {
       // Pick indices a and b deterministically within calculation to avoid retry loops
@@ -83,7 +90,7 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
       [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
       const nextGrid = currentGridArr.join('');
       
-      const nextDecrypted = decryptWithGrid(digitsOnly, nextGrid);
+      const nextDecrypted = decryptWithGrid(ciphertext, nextGrid);
       const nextScore = scorer.score(nextDecrypted);
 
       if (nextScore > currentScore) {

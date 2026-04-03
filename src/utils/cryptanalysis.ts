@@ -83,8 +83,9 @@ export class Scorer {
 
     for (const [key, val] of Object.entries(data)) {
       const count = Number(val);
-      if (isNaN(count) || count <= 0) {
-        throw new Error(`Invalid count for n-gram '${key}' in ${filePath}: ${val}. Must be a positive number.`);
+      // Ensure counts are finite positive numbers
+      if (!Number.isFinite(count) || count <= 0) {
+        throw new Error(`Invalid count for n-gram '${key}' in ${filePath}: ${val}. Must be a finite positive number.`);
       }
       this.ngrams[key] = count;
       this.total += count;
