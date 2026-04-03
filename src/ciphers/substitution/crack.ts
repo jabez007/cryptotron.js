@@ -13,9 +13,17 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
  * @returns {Object} The best cipher alphabet and decrypted text
  */
 export function crack(ciphertext: string, restarts: number = 20, iterations: number = 20000) {
+  // Validate numeric inputs up front as requested
+  if (!Number.isFinite(restarts) || restarts <= 0) {
+    throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a finite number > 0.`);
+  }
+  if (!Number.isFinite(iterations) || iterations <= 0) {
+    throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a finite number > 0.`);
+  }
+
   const normalizedCipher = normalize(ciphertext);
-  // Adaptive scorer
-  const scorer = getScorer(Math.min(4, normalizedCipher.length));
+  // Guard against empty normalized ciphertext and clamp n to 1..4 range
+  const scorer = getScorer(Math.max(1, Math.min(4, normalizedCipher.length)));
   
   let bestAlphabet = ALPHA_UPPER;
   let bestOverallScore = -Infinity;

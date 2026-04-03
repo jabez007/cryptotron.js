@@ -13,13 +13,14 @@ export function crack(ciphertext: string) {
   const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
   
   // Polybius output length is half of ciphertext (pairs), use synced digitsOnly length
-  const scorer = getScorer(Math.min(4, Math.floor(digitsOnly.length / 2)));
+  // Ensure n is at least 1 for getScorer
+  const scorer = getScorer(Math.max(1, Math.min(4, Math.floor(digitsOnly.length / 2))));
   
   // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
   // If we assume cipherChars are "12345", we can recover the 5x5 grid.
   
   const alphabet25 = alphaLower.replace('j', '');
-  let bestGrid = alphabet25;
+  let bestGridArr = alphabet25.split('');
   let bestOverallScore = -Infinity;
 
   const shuffle = (str: string) => {
@@ -28,7 +29,7 @@ export function crack(ciphertext: string) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return arr.join('');
+    return arr;
   };
 
   const decryptWithGrid = (text: string, grid: string) => {
@@ -50,38 +51,37 @@ export function crack(ciphertext: string) {
   };
 
   for (let r = 0; r < 10; r++) {
-    let currentGrid = shuffle(alphabet25);
-    let currentDecrypted = decryptWithGrid(digitsOnly, currentGrid);
-    let currentScore = scorer.score(currentDecrypted);
+    const currentGridArr = shuffle(alphabet25);
+    let currentScore = scorer.score(decryptWithGrid(digitsOnly, currentGridArr.join('')));
 
     for (let i = 0; i < 10000; i++) {
       const a = Math.floor(Math.random() * 25);
       let b = Math.floor(Math.random() * 25);
       while (a === b) b = Math.floor(Math.random() * 25);
 
-      const gridArr = currentGrid.split('');
-      [gridArr[a], gridArr[b]] = [gridArr[b], gridArr[a]];
-      const nextGrid = gridArr.join('');
+      // Perform in-place swap to reduce allocations as requested
+      [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
+      const nextGrid = currentGridArr.join('');
       
       const nextDecrypted = decryptWithGrid(digitsOnly, nextGrid);
       const nextScore = scorer.score(nextDecrypted);
 
       if (nextScore > currentScore) {
         currentScore = nextScore;
-        currentGrid = nextGrid;
+      } else {
+        // Swap back to revert
+        [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
       }
     }
 
     if (currentScore > bestOverallScore) {
       bestOverallScore = currentScore;
-      bestGrid = currentGrid;
+      bestGridArr = [...currentGridArr];
     }
   }
 
+  const bestGrid = bestGridArr.join('');
   // Translate bestGrid into the public Polybius key shape expected by decrypt.ts
-  // Since decrypt.ts builds the square from keyword + cipherChars, 
-  // and we recovered the raw grid, we return the grid itself as the keyword
-  // and the standard "12345" as cipherChars.
   return {
     key: { keyword: bestGrid, cipherChars: "12345" },
     plaintext: decryptWithGrid(ciphertext, bestGrid),
