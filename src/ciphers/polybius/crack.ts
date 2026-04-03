@@ -9,6 +9,9 @@ import { alphaLower } from '../../utils/index.ts';
  * @returns {Object} The best keyword and decrypted text
  */
 export function crack(ciphertext: string) {
+  if (typeof ciphertext !== 'string') {
+    throw new TypeError(`Expected ciphertext to be a string, received ${typeof ciphertext}`);
+  }
   // Hoist digits-only normalization as requested
   const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
   
