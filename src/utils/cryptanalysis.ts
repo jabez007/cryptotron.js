@@ -1,11 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-// User requested to remove the eval trick and __dirname branch
-// Directly using import.meta.url with fileURLToPath
-// @ts-ignore - import.meta is only allowed in ESM, but we handle it
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
+// Simplified runtime code to avoid URL conversion entirely in CJS
+// @ts-ignore - __dirname is available in CJS
+const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(new URL(import.meta.url).pathname);
 
 /**
  * Normalizes text by converting to uppercase and removing non-alphabetic characters.

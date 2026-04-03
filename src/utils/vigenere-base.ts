@@ -43,6 +43,11 @@ export function baseCrack(options: BaseCrackOptions) {
     periodic = true,
   } = options;
 
+  // Non-periodic cracking is not supported by this generic helper
+  if (periodic === false) {
+    throw new Error('Non-periodic cracking is not supported by baseCrack.');
+  }
+
   // Validate bounds early with strict checks for finite integers
   if (!Number.isInteger(minKeyLength) || !Number.isInteger(maxKeyLength) || 
       minKeyLength < 1 || maxKeyLength < 1 || minKeyLength > maxKeyLength) {
@@ -67,12 +72,6 @@ export function baseCrack(options: BaseCrackOptions) {
         for (let j = i; j < normalized.length; j += klen) {
           column += normalized[j];
         }
-      } else {
-        // Build contiguous slices for non-periodic (e.g. Running Key)
-        const sliceLen = Math.floor(normalized.length / klen);
-        const start = i * sliceLen;
-        const end = (i === klen - 1) ? normalized.length : (i + 1) * sliceLen;
-        column = normalized.substring(start, end);
       }
       
       // Fix for empty column alignment issue

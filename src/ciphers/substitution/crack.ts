@@ -25,6 +25,15 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
   }
 
   const normalizedCipher = normalize(ciphertext);
+  
+  // Short-circuit for empty normalized ciphertext
+  if (normalizedCipher === "") {
+    return {
+      key: { cipherAlphabet: alphaLower },
+      plaintext: ciphertext,
+    };
+  }
+
   // Guard against empty normalized ciphertext and clamp n to 1..4 range
   const scorer = getScorer(Math.max(1, Math.min(4, normalizedCipher.length)));
   

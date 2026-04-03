@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { baseCrack } from '../../utils/vigenere-base.ts';
+import { getScorer, normalize, MONOGRAMS, scoreMonograms } from '../../utils/cryptanalysis.ts';
 
 /**
  * Cracks the Running Key cipher.
@@ -8,26 +8,100 @@ import { baseCrack } from '../../utils/vigenere-base.ts';
  * True running-key ciphers are extremely difficult to crack without the key text or very long ciphertexts.
  * 
  * Uses n-gram frequency analysis to estimate the most likely repeating keyword.
- * This is a thin wrapper around the reusable baseCrack utility.
  * 
  * @param {string} ciphertext - The text to crack
  * @param {number} maxKeyLength - Maximum keyword length to test for the repeating key assumption (default 20)
  * @returns {Object} The recovered key (keyText) and decrypted plaintext
  */
 export function crack(ciphertext: string, maxKeyLength: number = 20) {
-  return baseCrack({
-    ciphertext,
-    maxKeyLength,
-    decryptColumnChar: (shift, charCode) => (charCode - shift + 26) % 26,
-    decryptFull: decrypt,
-    keyFactory: (keyword) => {
-      // Build keyText from repeating keyword to satisfy decrypt requirement
+  const normalized = normalize(ciphertext);
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
+  
+  let bestKeyword = 'A';
+  let bestOverallScore = -Infinity;
+
+  for (let klen = 1; klen <= maxKeyLength; klen++) {
+    const topShifts: number[][] = [];
+    
+    for (let i = 0; i < klen; i++) {
+      const shiftsWithScores: { shift: number; score: number }[] = [];
+      
+      let column = '';
+      for (let j = i; j < normalized.length; j += klen) {
+        column += normalized[j];
+      }
+      
+      if (column.length === 0) {
+        topShifts.push([0, 0]);
+        continue;
+      }
+
+      for (let shift = 0; shift < 26; shift++) {
+        let decryptedColumn = '';
+        for (let c = 0; c < column.length; c++) {
+          const charCode = column.charCodeAt(c) - 65;
+          decryptedColumn += String.fromCharCode(((charCode - shift + 26) % 26) + 65);
+        }
+        
+        shiftsWithScores.push({ shift, score: scoreMonograms(decryptedColumn) });
+      }
+      
+      shiftsWithScores.sort((a, b) => b.score - a.score);
+      topShifts.push([shiftsWithScores[0].shift, shiftsWithScores[1].shift]);
+    }
+
+    if (klen <= 12) {
+      const combinations = 1 << klen;
+      for (let c = 0; c < combinations; c++) {
+        let keyword = '';
+        for (let i = 0; i < klen; i++) {
+          const bit = (c >> i) & 1;
+          keyword += String.fromCharCode(topShifts[i][bit] + 65);
+        }
+        
+        let keyText = '';
+        while (keyText.length < ciphertext.length) {
+          keyText += keyword;
+        }
+        keyText = keyText.substring(0, ciphertext.length);
+
+        const plaintext = decrypt({ keyText })(ciphertext);
+        const score = scorer.score(plaintext);
+        
+        if (score > bestOverallScore) {
+          bestOverallScore = score;
+          bestKeyword = keyword;
+        }
+      }
+    } else {
+      let keyword = '';
+      for (let i = 0; i < klen; i++) {
+        keyword += String.fromCharCode(topShifts[i][0] + 65);
+      }
       let keyText = '';
       while (keyText.length < ciphertext.length) {
         keyText += keyword;
       }
-      return { keyText: keyText.substring(0, ciphertext.length) };
-    },
-    periodic: true, 
-  });
+      keyText = keyText.substring(0, ciphertext.length);
+
+      const plaintext = decrypt({ keyText })(ciphertext);
+      const score = scorer.score(plaintext);
+      
+      if (score > bestOverallScore) {
+        bestOverallScore = score;
+        bestKeyword = keyword;
+      }
+    }
+  }
+
+  let finalKeyText = '';
+  while (finalKeyText.length < ciphertext.length) {
+    finalKeyText += bestKeyword;
+  }
+  finalKeyText = finalKeyText.substring(0, ciphertext.length);
+
+  return {
+    key: { keyText: finalKeyText },
+    plaintext: decrypt({ keyText: finalKeyText })(ciphertext),
+  };
 }

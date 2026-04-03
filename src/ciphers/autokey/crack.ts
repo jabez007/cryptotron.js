@@ -13,6 +13,11 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  * @returns {Object} The recovered key (primer) and decrypted plaintext
  */
 export function crack(ciphertext: string, maxPrimerLength: number = 15) {
+  // Validate maxPrimerLength as requested
+  if (!Number.isFinite(maxPrimerLength) || !Number.isInteger(maxPrimerLength) || maxPrimerLength <= 0) {
+    throw new TypeError(`Invalid maxPrimerLength: ${maxPrimerLength}. Expected a positive integer.`);
+  }
+
   const normalized = normalize(ciphertext);
   // Use adaptive scorer
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));

@@ -17,6 +17,16 @@ export function crack(ciphertext: string) {
   // Hoist digits-only normalization as requested
   const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
   
+  const alphabet25 = alphaLower.replace('j', '');
+
+  // Check for incomplete polybius pairs
+  if (digitsOnly.length < 2) {
+    return {
+      key: { keyword: alphabet25, cipherChars: "12345" },
+      plaintext: ciphertext,
+    };
+  }
+
   // Polybius output length is half of ciphertext (pairs), use synced digitsOnly length
   // Ensure n is at least 1 for getScorer
   const scorer = getScorer(Math.max(1, Math.min(4, Math.floor(digitsOnly.length / 2))));
@@ -24,7 +34,6 @@ export function crack(ciphertext: string) {
   // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
   // If we assume cipherChars are "12345", we can recover the 5x5 grid.
   
-  const alphabet25 = alphaLower.replace('j', '');
   let bestGridArr = alphabet25.split('');
   let bestOverallScore = -Infinity;
 
