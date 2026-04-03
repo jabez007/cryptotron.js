@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { getQuadgramScorer } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
 
 /**
  * Cracks the Caesar cipher by brute-forcing all possible shifts.
@@ -8,7 +8,10 @@ import { getQuadgramScorer } from '../../utils/cryptanalysis.ts';
  * @returns {Object} The best shift and decrypted text
  */
 export function crack(ciphertext: string) {
-  const scorer = getQuadgramScorer();
+  const normalized = normalize(ciphertext);
+  // Adaptive scorer selection for short ciphertexts
+  const scorer = getScorer(Math.min(4, normalized.length));
+  
   let bestShift = 0;
   let bestScore = -Infinity;
   let bestPlaintext = '';

@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { getQuadgramScorer, normalize } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 const ALPHA_UPPER = alphaLower.toUpperCase();
@@ -13,8 +13,9 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
  * @returns {Object} The best cipher alphabet and decrypted text
  */
 export function crack(ciphertext: string, restarts: number = 20, iterations: number = 20000) {
-  const scorer = getQuadgramScorer();
   const normalizedCipher = normalize(ciphertext);
+  // Adaptive scorer
+  const scorer = getScorer(Math.min(4, normalizedCipher.length));
   
   let bestAlphabet = ALPHA_UPPER;
   let bestOverallScore = -Infinity;

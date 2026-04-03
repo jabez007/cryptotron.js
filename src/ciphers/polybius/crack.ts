@@ -1,4 +1,4 @@
-import { getQuadgramScorer } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 /**
@@ -9,7 +9,9 @@ import { alphaLower } from '../../utils/index.ts';
  * @returns {Object} The best keyword and decrypted text
  */
 export function crack(ciphertext: string) {
-  const scorer = getQuadgramScorer();
+  const normalized = normalize(ciphertext);
+  // Polybius output length is half of ciphertext (pairs), but let's be safe
+  const scorer = getScorer(Math.min(4, ciphertext.replace(/[^1-5]/g, '').length / 2));
   
   // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
   // If we assume cipherChars are "12345", we can recover the 5x5 grid.

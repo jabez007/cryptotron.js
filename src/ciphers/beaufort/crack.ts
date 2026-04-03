@@ -1,4 +1,4 @@
-import { decrypt } from './index.ts';
+import { decrypt } from './decrypt.ts';
 import { baseCrack } from '../../utils/vigenere-base.ts';
 
 /**

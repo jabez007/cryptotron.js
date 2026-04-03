@@ -1,5 +1,5 @@
-import { decrypt } from './index.ts';
-import { getQuadgramScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
+import { decrypt } from './decrypt.ts';
+import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
 
 /**
  * Cracks the Autokey cipher.
@@ -9,8 +9,9 @@ import { getQuadgramScorer, normalize, scoreMonograms } from '../../utils/crypta
  * @returns {Object} The best primer and decrypted text
  */
 export function crack(ciphertext: string, maxPrimerLength: number = 15) {
-  const scorer = getQuadgramScorer();
   const normalized = normalize(ciphertext);
+  // Use adaptive scorer
+  const scorer = getScorer(Math.min(4, normalized.length));
   
   let bestPrimer = 'A';
   let bestOverallScore = -Infinity;

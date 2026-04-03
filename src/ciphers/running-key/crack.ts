@@ -1,4 +1,4 @@
-import { decrypt } from './index.ts';
+import { decrypt } from './decrypt.ts';
 import { baseCrack } from '../../utils/vigenere-base.ts';
 
 /**
@@ -25,6 +25,6 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
       }
       return { keyText: keyText.substring(0, ciphertext.length) };
     },
-    periodic: true, // Use periodic for repeating keyword assumption
+    periodic: true, 
   });
 }
