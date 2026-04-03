@@ -10,7 +10,7 @@ describe('Cryptanalysis Utilities', function () {
       assert.ok(getScorer(4));
     });
 
-    it('should throw TypeError for invalid n values', function () {
+    it('should throw TypeError for invalid numeric types', function () {
       // Non-finite
       assert.throws(() => getScorer(Infinity), {
         name: 'TypeError',
@@ -26,15 +26,20 @@ describe('Cryptanalysis Utilities', function () {
         name: 'TypeError',
         message: /Invalid n-gram length/
       });
+    });
 
-      // Out of domain
+    it('should throw RangeError for values out of range [1, 4]', function () {
       assert.throws(() => getScorer(0), {
-        name: 'TypeError',
-        message: /Invalid n-gram length/
+        name: 'RangeError',
+        message: /Must be between 1 and 4/
+      });
+      assert.throws(() => getScorer(5), {
+        name: 'RangeError',
+        message: /Must be between 1 and 4/
       });
       assert.throws(() => getScorer(-1), {
-        name: 'TypeError',
-        message: /Invalid n-gram length/
+        name: 'RangeError',
+        message: /Must be between 1 and 4/
       });
     });
   });

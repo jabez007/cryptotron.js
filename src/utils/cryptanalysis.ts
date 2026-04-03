@@ -73,8 +73,8 @@ export class Scorer {
       throw new Error(`Failed to load n-gram data for '${ngramType}' from ${filePath}: ${(err as Error).message}`);
     }
 
-    // Validate payload shape and counts
-    if (typeof data !== 'object' || data === null) {
+    // Validate payload shape and counts. Explicitly reject arrays.
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
       throw new Error(`Invalid data format in ${filePath}. Expected a JSON object.`);
     }
 
@@ -142,10 +142,13 @@ let quadgramsScorer: Scorer | null = null;
  * @returns {Scorer} The Scorer instance
  */
 export function getScorer(n: number): Scorer {
-  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 1) {
-    throw new TypeError(`Invalid n-gram length: ${n}. Must be a finite integer >= 1.`);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) {
+    throw new TypeError(`Invalid n-gram length: ${n}. Must be a finite integer.`);
   }
-  if (n <= 1) {
+  if (n < 1 || n > 4) {
+    throw new RangeError(`Invalid n-gram length: ${n}. Must be between 1 and 4.`);
+  }
+  if (n === 1) {
     if (!monogramsScorer) monogramsScorer = new Scorer('monograms');
     return monogramsScorer;
   }

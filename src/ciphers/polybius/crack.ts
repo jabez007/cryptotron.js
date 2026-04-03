@@ -75,9 +75,9 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
     let currentScore = scorer.score(decryptWithGrid(digitsOnly, currentGridArr.join('')));
 
     for (let i = 0; i < 10000; i++) {
+      // Pick indices a and b deterministically within calculation to avoid retry loops
       const a = Math.floor(rng() * 25);
-      let b = Math.floor(rng() * 25);
-      while (a === b) b = Math.floor(rng() * 25);
+      const b = (a + 1 + Math.floor(rng() * 24)) % 25;
 
       // Perform in-place swap to reduce allocations as requested
       [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
