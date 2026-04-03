@@ -3,6 +3,9 @@ import { getCharOffset, modulo, transform } from '@utils';
 /**
  * Creates a transformation function that can encrypt or decrypt text
  * using the Beaufort cipher algorithm.
+ * 
+ * @param {string} keyword - The secret keyword used for the cipher
+ * @returns {Function} A function that transforms each character of the text
  */
 export function algorithm(keyword: string) {
   const cleanedKeyword = keyword.replace(/[^A-Za-z]/g, '');
@@ -41,6 +44,10 @@ export function algorithm(keyword: string) {
 
 /**
  * Decrypts text using the Beaufort cipher.
+ * 
+ * @param {Object} key - The decryption key
+ * @param {string} key.keyword - The secret keyword
+ * @returns {Function} A function that takes encrypted text and returns original message
  */
 export function decrypt(key: { keyword: string }) {
   return algorithm(key.keyword);

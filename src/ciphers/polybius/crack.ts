@@ -3,10 +3,12 @@ import { alphaLower } from '../../utils/index.ts';
 
 /**
  * Cracks the Polybius Square cipher.
+ * 
+ * Uses a hill-climbing algorithm to recover the 5x5 grid.
  * Assumes default cipherChars "12345" and that I/J share a cell.
  * 
  * @param {string} ciphertext - The text to crack
- * @returns {Object} The best keyword and decrypted text
+ * @returns {Object} The recovered key (grid as keyword) and decrypted plaintext
  */
 export function crack(ciphertext: string) {
   if (typeof ciphertext !== 'string') {

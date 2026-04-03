@@ -4,8 +4,11 @@ import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
 /**
  * Cracks the Caesar cipher by brute-forcing all possible shifts.
  * 
+ * Uses n-gram frequency analysis to score all 26 possible decryptions
+ * and returns the one with the highest score.
+ * 
  * @param {string} ciphertext - The text to crack
- * @returns {Object} The best shift and decrypted text
+ * @returns {Object} The recovered key (shift) and decrypted plaintext
  */
 export function crack(ciphertext: string) {
   const normalized = normalize(ciphertext);

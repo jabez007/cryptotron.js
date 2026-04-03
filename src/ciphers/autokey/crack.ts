@@ -4,14 +4,18 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
 /**
  * Cracks the Autokey cipher.
  * 
+ * Uses a two-stage approach:
+ * 1. Initial guess using independent column frequency analysis (monograms).
+ * 2. Hill-climbing refinement of the primer using n-gram scoring on the full message.
+ * 
  * @param {string} ciphertext - The text to crack
  * @param {number} maxPrimerLength - Maximum primer length to test (default 15)
- * @returns {Object} The best primer and decrypted text
+ * @returns {Object} The recovered key (primer) and decrypted plaintext
  */
 export function crack(ciphertext: string, maxPrimerLength: number = 15) {
   const normalized = normalize(ciphertext);
   // Use adaptive scorer
-  const scorer = getScorer(Math.min(4, normalized.length));
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
   let bestPrimer = 'A';
   let bestOverallScore = -Infinity;

@@ -7,11 +7,19 @@ import { fileURLToPath } from 'node:url';
 // @ts-ignore - import.meta is only allowed in ESM, but we handle it
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Normalizes text by converting to uppercase and removing non-alphabetic characters.
+ * 
+ * @param {string} text - The text to normalize
+ * @returns {string} The normalized text
+ */
 export function normalize(text: string): string {
   return text.toUpperCase().replace(/[^A-Z]/g, '');
 }
 
-// Simple monogram frequencies for English
+/**
+ * Simple monogram frequencies for English.
+ */
 export const MONOGRAMS: Record<string, number> = {
   'A': 0.08167, 'B': 0.01492, 'C': 0.02782, 'D': 0.04253, 'E': 0.12702, 'F': 0.02228, 'G': 0.02015,
   'H': 0.06094, 'I': 0.06966, 'J': 0.00153, 'K': 0.00772, 'L': 0.04025, 'M': 0.02406, 'N': 0.06749,
@@ -19,6 +27,13 @@ export const MONOGRAMS: Record<string, number> = {
   'V': 0.00978, 'W': 0.02360, 'X': 0.00150, 'Y': 0.01974, 'Z': 0.00074
 };
 
+/**
+ * Scores a piece of text based on monogram frequencies.
+ * Higher scores indicate the text is more likely to be English.
+ * 
+ * @param {string} text - The text to score
+ * @returns {number} The log-probability score
+ */
 export function scoreMonograms(text: string): number {
   let score = 0;
   for (let i = 0; i < text.length; i++) {
@@ -27,12 +42,20 @@ export function scoreMonograms(text: string): number {
   return score;
 }
 
+/**
+ * A class for scoring text using n-gram frequency analysis.
+ */
 export class Scorer {
   private ngrams: Record<string, number> = {};
   private n: number = 0;
   private total: number = 0;
   private floor: number = 0;
 
+  /**
+   * Creates a new Scorer instance.
+   * 
+   * @param {'monograms' | 'bigrams' | 'trigrams' | 'quadgrams'} ngramType - The type of n-gram data to load
+   */
   constructor(ngramType: 'monograms' | 'bigrams' | 'trigrams' | 'quadgrams' = 'quadgrams') {
     const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -52,6 +75,12 @@ export class Scorer {
     }
   }
 
+  /**
+   * Scores a piece of text using the loaded n-gram data.
+   * 
+   * @param {string} text - The text to score
+   * @returns {number} The log-probability score
+   */
   score(text: string): number {
     const normalized = normalize(text);
     let score = 0;
@@ -74,6 +103,12 @@ let bigramsScorer: Scorer | null = null;
 let trigramsScorer: Scorer | null = null;
 let quadgramsScorer: Scorer | null = null;
 
+/**
+ * Returns a singleton Scorer instance for the specified n-gram length.
+ * 
+ * @param {number} n - The n-gram length (1-4)
+ * @returns {Scorer} The Scorer instance
+ */
 export function getScorer(n: number): Scorer {
   if (n <= 1) {
     if (!monogramsScorer) monogramsScorer = new Scorer('monograms');
@@ -91,6 +126,11 @@ export function getScorer(n: number): Scorer {
   return quadgramsScorer;
 }
 
+/**
+ * Returns a singleton Scorer instance for quadgrams.
+ * 
+ * @returns {Scorer} The quadgram Scorer instance
+ */
 export function getQuadgramScorer(): Scorer {
   return getScorer(4);
 }

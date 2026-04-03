@@ -1,18 +1,35 @@
 import { getScorer, normalize, scoreMonograms } from './cryptanalysis.ts';
 
+/**
+ * Options for the base Vigenere-style cracker.
+ */
 export interface BaseCrackOptions {
+  /** The ciphertext to crack */
   ciphertext: string;
+  /** Maximum key length to test (default 20) */
   maxKeyLength?: number;
+  /** Minimum key length to test (default 1) */
   minKeyLength?: number;
+  /** Initial keyword to start with (default 'A') */
   initialBestKeyword?: string;
+  /** Function to decrypt a single character in a column given a shift and charCode */
   decryptColumnChar: (shift: number, charCode: number) => number;
+  /** Function to perform full decryption given a key object */
   decryptFull: (key: any) => (text: string) => string;
+  /** Factory function to create a key object from a keyword string */
   keyFactory: (keyword: string) => any;
+  /** Whether the cipher is periodic (repeating key) or not (contiguous segments) */
   periodic?: boolean;
 }
 
 /**
  * Reusable base cracker for Vigenere-style ciphers.
+ * 
+ * Uses n-gram frequency analysis to estimate the most likely key length
+ * and keyword for a given ciphertext.
+ * 
+ * @param {BaseCrackOptions} options - The cracking options
+ * @returns {Object} The recovered key and decrypted plaintext
  */
 export function baseCrack(options: BaseCrackOptions) {
   const {
@@ -34,7 +51,7 @@ export function baseCrack(options: BaseCrackOptions) {
 
   const normalized = normalize(ciphertext);
   // Conditional fallback for short ciphertexts
-  const scorer = getScorer(Math.min(4, normalized.length));
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
   let bestKeyword = initialBestKeyword;
   let bestOverallScore = -Infinity;

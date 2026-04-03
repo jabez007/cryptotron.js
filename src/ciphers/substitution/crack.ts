@@ -7,10 +7,13 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
 /**
  * Cracks the Simple Substitution cipher using hill-climbing.
  * 
+ * Uses n-gram frequency analysis to iteratively improve a random cipher alphabet.
+ * Swaps two characters in the alphabet and keeps the swap if it improves the score.
+ * 
  * @param {string} ciphertext - The text to crack
  * @param {number} restarts - Number of times to restart with a random key (default 20)
  * @param {number} iterations - Number of swaps per restart (default 20000)
- * @returns {Object} The best cipher alphabet and decrypted text
+ * @returns {Object} The recovered key (cipherAlphabet) and decrypted plaintext
  */
 export function crack(ciphertext: string, restarts: number = 20, iterations: number = 20000) {
   // Validate numeric inputs up front as requested
