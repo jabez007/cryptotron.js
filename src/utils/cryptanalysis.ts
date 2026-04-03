@@ -34,9 +34,10 @@ export const MONOGRAMS: Record<string, number> = {
  * @returns {number} The log-probability score
  */
 export function scoreMonograms(text: string): number {
+  const normalized = normalize(text);
   let score = 0;
-  for (let i = 0; i < text.length; i++) {
-    score += Math.log10(MONOGRAMS[text[i]] || 0.0001);
+  for (let i = 0; i < normalized.length; i++) {
+    score += Math.log10(MONOGRAMS[normalized[i]] || 0.0001);
   }
   return score;
 }
@@ -57,8 +58,14 @@ export class Scorer {
    */
   constructor(ngramType: 'monograms' | 'bigrams' | 'trigrams' | 'quadgrams' = 'quadgrams') {
     const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    this.ngrams = data;
+    
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      this.ngrams = data;
+    } catch (err) {
+      throw new Error(`Failed to load n-gram data for '${ngramType}' from ${filePath}: ${(err as Error).message}`);
+    }
+
     this.n = ngramType === 'monograms' ? 1 : 
              ngramType === 'bigrams' ? 2 : 
              ngramType === 'trigrams' ? 3 : 4;

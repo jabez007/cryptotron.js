@@ -3,7 +3,7 @@ import { getScorer, normalize, scoreMonograms } from './cryptanalysis.ts';
 /**
  * Options for the base Vigenere-style cracker.
  */
-export interface BaseCrackOptions {
+export interface BaseCrackOptions<K = any> {
   /** The ciphertext to crack */
   ciphertext: string;
   /** Maximum key length to test (default 20) */
@@ -15,9 +15,9 @@ export interface BaseCrackOptions {
   /** Function to decrypt a single character in a column given a shift and charCode */
   decryptColumnChar: (shift: number, charCode: number) => number;
   /** Function to perform full decryption given a key object */
-  decryptFull: (key: any) => (text: string) => string;
+  decryptFull: (key: K) => (text: string) => string;
   /** Factory function to create a key object from a keyword string */
-  keyFactory: (keyword: string) => any;
+  keyFactory: (keyword: string) => K;
   /** Whether the cipher is periodic (repeating key) or not (contiguous segments) */
   periodic?: boolean;
 }
@@ -31,7 +31,7 @@ export interface BaseCrackOptions {
  * @param {BaseCrackOptions} options - The cracking options
  * @returns {Object} The recovered key and decrypted plaintext
  */
-export function baseCrack(options: BaseCrackOptions) {
+export function baseCrack<K = any>(options: BaseCrackOptions<K>) {
   const {
     ciphertext,
     maxKeyLength = 20,

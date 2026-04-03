@@ -49,14 +49,19 @@ export function crack(ciphertext: string) {
   const decryptWithGrid = (text: string, grid: string) => {
     let result = '';
     for (let i = 0; i < text.length; i += 2) {
+      // Explicitly handle odd-length input
+      if (i + 1 >= text.length) {
+        result += text[i];
+        break;
+      }
+
       const row = parseInt(text[i]) - 1;
       const col = parseInt(text[i+1]) - 1;
       if (isNaN(row) || isNaN(col) || row < 0 || row > 4 || col < 0 || col > 4) {
-        // In decryptWithGrid: when a non-digit (or an invalid pair) is encountered
-        // we append the single character and decrement i so the loop's i += 2 yields a net
-        // advance of 1 (effectively consuming one char instead of a pair).
+        // Handle non-digit characters or out-of-range pairs by treating 
+        // them as single characters and not consuming a pair.
         result += text[i];
-        i--; 
+        i--; // Backup so the loop's i+=2 only advances 1
         continue;
       }
       result += grid[row * 5 + col];
