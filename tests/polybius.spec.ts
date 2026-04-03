@@ -30,6 +30,10 @@ describe('Polybius Square', function () {
       assert.ok(decrypted.includes("POLYBIUS"), `Expected 'POLYBIUS' in: ${decrypted}`);
       assert.ok(decrypted.includes("CHECKERBOARD"), `Expected 'CHECKERBOARD' in: ${decrypted}`);
       assert.ok(decrypted.includes("FRACTIONATING"), `Expected 'FRACTIONATING' in: ${decrypted}`);
+
+      // Round-trip assertion
+      const roundTripPlaintext = decrypt(result.key)(ciphertext);
+      assert.strictEqual(roundTripPlaintext.toLowerCase(), result.plaintext.toLowerCase());
     });
 
     it('should handle custom cipherChars', function () {
@@ -43,6 +47,10 @@ describe('Polybius Square', function () {
       assert.ok(decrypted.includes("CHECKERBOARD"), `Expected 'CHECKERBOARD' in: ${decrypted}`);
       assert.ok(decrypted.includes("FRACTIONATING"), `Expected 'FRACTIONATING' in: ${decrypted}`);
       assert.strictEqual(result.key.cipherChars, "ABCDE");
+
+      // Round-trip assertion
+      const roundTripPlaintext = decrypt(result.key)(ciphertext);
+      assert.strictEqual(roundTripPlaintext.toLowerCase(), result.plaintext.toLowerCase());
     });
   });
 });

@@ -1,3 +1,4 @@
+import { buildCipherSquare } from '@utils';
 import { getScorer } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
@@ -15,13 +16,26 @@ function detectCipherChars(ciphertext: string): string {
     }
   }
   
-  const sorted = Object.entries(counts)
+  let sorted = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(e => e[0])
-    .sort();
+    .sort()
+    .join('');
+
+  // Ensure we return exactly 5 characters
+  if (sorted.length < 5) {
+    const defaults = '12345';
+    for (const d of defaults) {
+      if (!sorted.includes(d)) {
+        sorted += d;
+      }
+      if (sorted.length === 5) break;
+    }
+    sorted = sorted.split('').sort().join('');
+  }
     
-  return sorted.join('') || '12345';
+  return sorted;
 }
 
 /**
@@ -80,30 +94,39 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
   };
 
   const decryptWithGrid = (text: string, grid: string) => {
+    const keySquare = buildCipherSquare(grid);
     let result = '';
-    for (let i = 0; i < text.length; i += 2) {
-      // Explicitly handle odd-length input
-      if (i + 1 >= text.length) {
-        result += text[i];
-        break;
-      }
-
-      const row = detectedChars.indexOf(text[i]);
-      const col = detectedChars.indexOf(text[i+1]);
+    let i = 0;
+    while (i < text.length) {
+      const char = text.charAt(i);
+      const row = detectedChars.indexOf(char);
       
-      if (row === -1 || col === -1) {
-        // Handle non-coordinate characters by treating them as single characters
-        result += text[i];
-        i--; // Backup so the loop's i+=2 only advances 1
-        continue;
+      if (row !== -1) {
+        i += 1;
+        if (i >= text.length) {
+          result += char;
+          break;
+        }
+        
+        const col = detectedChars.indexOf(text.charAt(i));
+        if (col === -1) {
+          result += char;
+          // Back up to process the current non-coordinate character in next iteration
+          i -= 1;
+        } else {
+          result += keySquare[row][col];
+        }
+      } else {
+        result += char;
       }
-      result += grid[row * 5 + col];
+      i += 1;
     }
     return result;
   };
 
   for (let r = 0; r < 20; r++) {
     const currentGridArr = shuffle(alphabet25, rng);
+    // Use original ciphertext for search/scoring to ensure consistency
     let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
     for (let i = 0; i < 20000; i++) {
