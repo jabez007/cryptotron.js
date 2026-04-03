@@ -13,9 +13,15 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
  * @param {string} ciphertext - The text to crack
  * @param {number} restarts - Number of times to restart with a random key (default 20)
  * @param {number} iterations - Number of swaps per restart (default 20000)
+ * @param {Function} [rng] - Optional random number generator (default Math.random)
  * @returns {Object} The recovered key (cipherAlphabet) and decrypted plaintext
  */
-export function crack(ciphertext: string, restarts: number = 20, iterations: number = 20000) {
+export function crack(
+  ciphertext: string, 
+  restarts: number = 20, 
+  iterations: number = 20000,
+  rng: () => number = Math.random
+) {
   // Validate numeric inputs up front as requested
   if (!Number.isInteger(restarts) || restarts <= 0) {
     throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a positive integer.`);
@@ -40,10 +46,10 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
   let bestAlphabet = ALPHA_UPPER;
   let bestOverallScore = -Infinity;
 
-  const shuffle = (str: string) => {
+  const shuffle = (str: string, random: () => number) => {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr.join('');
@@ -64,15 +70,15 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
   };
 
   for (let r = 0; r < restarts; r++) {
-    let currentAlphabet = shuffle(ALPHA_UPPER);
+    let currentAlphabet = shuffle(ALPHA_UPPER, rng);
     const alphabetArr = currentAlphabet.split('');
     let currentDecrypted = decryptFast(normalizedCipher, currentAlphabet);
     let currentScore = scorer.score(currentDecrypted);
 
     for (let i = 0; i < iterations; i++) {
-      const a = Math.floor(Math.random() * 26);
-      let b = Math.floor(Math.random() * 26);
-      while (a === b) b = Math.floor(Math.random() * 26);
+      const a = Math.floor(rng() * 26);
+      let b = Math.floor(rng() * 26);
+      while (a === b) b = Math.floor(rng() * 26);
 
       // Perform in-place swap to reduce allocations as requested
       [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];

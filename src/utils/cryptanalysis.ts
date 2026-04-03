@@ -46,6 +46,8 @@ export function scoreMonograms(text: string): number {
  * A class for scoring text using n-gram frequency analysis.
  */
 export class Scorer {
+  private static readonly ALLOWED_NGRAMS = new Set(['monograms', 'bigrams', 'trigrams', 'quadgrams']);
+  
   private ngrams: Record<string, number> = {};
   private n: number = 0;
   private total: number = 0;
@@ -58,25 +60,43 @@ export class Scorer {
    */
   constructor(ngramType: 'monograms' | 'bigrams' | 'trigrams' | 'quadgrams' = 'quadgrams') {
     // Validate ngramType against a strict whitelist
-    const allowed = new Set(['monograms', 'bigrams', 'trigrams', 'quadgrams']);
-    if (!allowed.has(ngramType)) {
+    if (!Scorer.ALLOWED_NGRAMS.has(ngramType)) {
       throw new Error(`Invalid ngramType: '${ngramType}'. Must be one of: monograms, bigrams, trigrams, quadgrams.`);
     }
 
     const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
     
+    let data: Record<string, any>;
     try {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      this.ngrams = data;
+      data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     } catch (err) {
       throw new Error(`Failed to load n-gram data for '${ngramType}' from ${filePath}: ${(err as Error).message}`);
+    }
+
+    // Validate payload shape and counts
+    if (typeof data !== 'object' || data === null) {
+      throw new Error(`Invalid data format in ${filePath}. Expected a JSON object.`);
+    }
+
+    this.ngrams = {};
+    this.total = 0;
+
+    for (const [key, val] of Object.entries(data)) {
+      const count = Number(val);
+      if (isNaN(count) || count <= 0) {
+        throw new Error(`Invalid count for n-gram '${key}' in ${filePath}: ${val}. Must be a positive number.`);
+      }
+      this.ngrams[key] = count;
+      this.total += count;
+    }
+
+    if (this.total === 0) {
+      throw new Error(`Total n-gram count is 0 in ${filePath}. Cannot compute probabilities.`);
     }
 
     this.n = ngramType === 'monograms' ? 1 : 
              ngramType === 'bigrams' ? 2 : 
              ngramType === 'trigrams' ? 3 : 4;
-    
-    this.total = Object.values(this.ngrams).reduce((sum, count) => sum + count, 0);
     
     // We use the log of the probability of a very rare ngram (count of 0.01) as the floor
     this.floor = Math.log10(0.01 / this.total);
