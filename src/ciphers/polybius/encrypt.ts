@@ -13,7 +13,7 @@ import { buildCipherSquare, transform } from '@utils';
  * 4. Letters not in the grid (like numbers) stay the same
  *
  * @param {Object} key - The encryption key
- * @param {string} key.keyword - Secret word to scramble the letter grid
+ * @param {string} key.keyword - Secret word to scramble the letter grid (can also be a full 25-char grid)
  * @param {string} key.cipherChars - Exactly 5 characters used to represent rows/columns (e.g., "12345")
  * @returns {Function} A function that takes text and returns encrypted pairs
  * @throws {Error} If cipherChars doesn't have exactly 5 characters

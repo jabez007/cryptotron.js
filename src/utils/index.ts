@@ -72,6 +72,12 @@ export function getUniqueCharacters(input: string) {
   return unique;
 }
 
+/**
+ * Builds a 5x5 cipher square from a keyword or a full 25-character grid.
+ * 
+ * @param {string} keyword - A secret word or a full 25-character alphabet (excluding 'j')
+ * @returns {string[][]} A 5x5 grid of characters
+ */
 export function buildCipherSquare(keyword: string) {
   const key = getUniqueCharacters(`${keyword.toLowerCase()}${alphaLower}`)
     .replace(/[j]/g, '');

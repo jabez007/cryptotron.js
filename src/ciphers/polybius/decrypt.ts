@@ -13,7 +13,7 @@ import { buildCipherSquare } from '@utils';
  * 4. Characters not in cipherChars stay the same
  *
  * @param {Object} key - The decryption key (must match encryption key)
- * @param {string} key.keyword - Same secret word used to encrypt
+ * @param {string} key.keyword - Same secret word used to encrypt (can also be a full 25-char grid)
  * @param {string} key.cipherChars - Same 5 characters used during encryption
  * @returns {Function} A function that takes encrypted pairs and returns original text
  * @throws {Error} If cipherChars doesn't have exactly 5 characters
