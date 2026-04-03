@@ -1,9 +1,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Simplified runtime code to avoid URL conversion entirely in CJS
 // @ts-ignore - __dirname is available in CJS
-const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(new URL(import.meta.url).pathname);
+const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Normalizes text by converting to uppercase and removing non-alphabetic characters.
