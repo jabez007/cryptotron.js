@@ -17,11 +17,11 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
  */
 export function crack(ciphertext: string, restarts: number = 20, iterations: number = 20000) {
   // Validate numeric inputs up front as requested
-  if (!Number.isFinite(restarts) || restarts <= 0) {
-    throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a finite number > 0.`);
+  if (!Number.isInteger(restarts) || restarts <= 0) {
+    throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a positive integer.`);
   }
-  if (!Number.isFinite(iterations) || iterations <= 0) {
-    throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a finite number > 0.`);
+  if (!Number.isInteger(iterations) || iterations <= 0) {
+    throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a positive integer.`);
   }
 
   const normalizedCipher = normalize(ciphertext);
@@ -29,7 +29,7 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
   // Short-circuit for empty normalized ciphertext
   if (normalizedCipher === "") {
     return {
-      key: { cipherAlphabet: alphaLower },
+      key: { cipherAlphabet: ALPHA_UPPER },
       plaintext: ciphertext,
     };
   }

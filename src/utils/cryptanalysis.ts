@@ -57,6 +57,12 @@ export class Scorer {
    * @param {'monograms' | 'bigrams' | 'trigrams' | 'quadgrams'} ngramType - The type of n-gram data to load
    */
   constructor(ngramType: 'monograms' | 'bigrams' | 'trigrams' | 'quadgrams' = 'quadgrams') {
+    // Validate ngramType against a strict whitelist
+    const allowed = new Set(['monograms', 'bigrams', 'trigrams', 'quadgrams']);
+    if (!allowed.has(ngramType)) {
+      throw new Error(`Invalid ngramType: '${ngramType}'. Must be one of: monograms, bigrams, trigrams, quadgrams.`);
+    }
+
     const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
     
     try {
