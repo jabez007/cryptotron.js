@@ -1,4 +1,4 @@
-import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
+import { getScorer } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 /**
@@ -9,9 +9,11 @@ import { alphaLower } from '../../utils/index.ts';
  * @returns {Object} The best keyword and decrypted text
  */
 export function crack(ciphertext: string) {
-  const normalized = normalize(ciphertext);
-  // Polybius output length is half of ciphertext (pairs), but let's be safe
-  const scorer = getScorer(Math.min(4, ciphertext.replace(/[^1-5]/g, '').length / 2));
+  // Hoist digits-only normalization as requested
+  const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
+  
+  // Polybius output length is half of ciphertext (pairs), use synced digitsOnly length
+  const scorer = getScorer(Math.min(4, Math.floor(digitsOnly.length / 2)));
   
   // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
   // If we assume cipherChars are "12345", we can recover the 5x5 grid.
@@ -47,9 +49,6 @@ export function crack(ciphertext: string) {
     return result;
   };
 
-  // Strip non-digits for hill climbing
-  const digitsOnly = ciphertext.replace(/[^1-5]/g, '');
-
   for (let r = 0; r < 10; r++) {
     let currentGrid = shuffle(alphabet25);
     let currentDecrypted = decryptWithGrid(digitsOnly, currentGrid);
@@ -79,8 +78,12 @@ export function crack(ciphertext: string) {
     }
   }
 
+  // Translate bestGrid into the public Polybius key shape expected by decrypt.ts
+  // Since decrypt.ts builds the square from keyword + cipherChars, 
+  // and we recovered the raw grid, we return the grid itself as the keyword
+  // and the standard "12345" as cipherChars.
   return {
-    key: { grid: bestGrid },
+    key: { keyword: bestGrid, cipherChars: "12345" },
     plaintext: decryptWithGrid(ciphertext, bestGrid),
   };
 }

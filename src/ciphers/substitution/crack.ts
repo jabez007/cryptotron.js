@@ -45,6 +45,7 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
 
   for (let r = 0; r < restarts; r++) {
     let currentAlphabet = shuffle(ALPHA_UPPER);
+    const alphabetArr = currentAlphabet.split('');
     let currentDecrypted = decryptFast(normalizedCipher, currentAlphabet);
     let currentScore = scorer.score(currentDecrypted);
 
@@ -53,7 +54,7 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
       let b = Math.floor(Math.random() * 26);
       while (a === b) b = Math.floor(Math.random() * 26);
 
-      const alphabetArr = currentAlphabet.split('');
+      // Perform in-place swap to reduce allocations as requested
       [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
       const nextAlphabet = alphabetArr.join('');
       
@@ -63,6 +64,9 @@ export function crack(ciphertext: string, restarts: number = 20, iterations: num
       if (nextScore > currentScore) {
         currentScore = nextScore;
         currentAlphabet = nextAlphabet;
+      } else {
+        // Swap back to revert
+        [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
       }
     }
 
