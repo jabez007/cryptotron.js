@@ -29,6 +29,14 @@ function buildKeyText(keyword: string, alphabeticLength: number): string {
 export function crack(ciphertext: string, maxKeyLength: number = 20) {
   const normalized = normalize(ciphertext);
   
+  // Early return for empty input
+  if (normalized.length === 0) {
+    return {
+      key: { keyText: '' },
+      plaintext: ciphertext,
+    };
+  }
+
   // Sanitize and clamp maxKeyLength without hardcoded upper bound
   const maxKeyLengthSanitized = Number.isFinite(maxKeyLength) 
     ? Math.max(1, Math.floor(maxKeyLength)) 
@@ -42,6 +50,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
 
   let bestKeyword = 'A';
   let bestOverallScore = -Infinity;
+  let bestPlaintext = '';
 
   for (let klen = 1; klen <= effectiveMaxKeyLength; klen++) {
     const topShifts: number[][] = [];
@@ -89,6 +98,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
         if (score > bestOverallScore) {
           bestOverallScore = score;
           bestKeyword = keyword;
+          bestPlaintext = plaintext;
         }
       }
     } else {
@@ -104,14 +114,20 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
       if (score > bestOverallScore) {
         bestOverallScore = score;
         bestKeyword = keyword;
+        bestPlaintext = plaintext;
       }
     }
   }
 
-  const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
+  // Fallback for case where no improvement was found (should not happen with valid input)
+  if (bestPlaintext === '') {
+    const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
+    bestPlaintext = decrypt({ keyText: finalKeyText })(ciphertext);
+  }
 
+  const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
   return {
     key: { keyText: finalKeyText },
-    plaintext: decrypt({ keyText: finalKeyText })(ciphertext),
+    plaintext: bestPlaintext,
   };
 }
