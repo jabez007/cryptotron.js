@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, MONOGRAMS, scoreMonograms } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
 
 /**
  * Cracks the Running Key cipher.
