@@ -1,6 +1,14 @@
 import assert from 'assert';
 import { encrypt, decrypt, crack } from '../src/ciphers/polybius';
 
+// Simple seeded RNG for deterministic testing
+function createSeededRng(seed: number) {
+  return function() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+
 describe('Polybius Square', function () {
   
   describe('#encrypt', function () {
@@ -24,7 +32,9 @@ describe('Polybius Square', function () {
       const keyword = "SECRET";
       const cipherChars = "12345";
       const ciphertext = encrypt({ keyword, cipherChars })(educationalText);
-      const result = crack(ciphertext);
+      
+      const rng = createSeededRng(42);
+      const result = crack(ciphertext, rng);
       
       const decrypted = result.plaintext.toUpperCase();
       assert.ok(decrypted.includes("POLYBIUS"), `Expected 'POLYBIUS' in: ${decrypted}`);
@@ -40,7 +50,9 @@ describe('Polybius Square', function () {
       const keyword = "CIPHER";
       const cipherChars = "ABCDE";
       const ciphertext = encrypt({ keyword, cipherChars })(educationalText);
-      const result = crack(ciphertext);
+      
+      const rng = createSeededRng(42);
+      const result = crack(ciphertext, rng);
       
       const decrypted = result.plaintext.toUpperCase();
       assert.ok(decrypted.includes("POLYBIUS"), `Expected 'POLYBIUS' in: ${decrypted}`);

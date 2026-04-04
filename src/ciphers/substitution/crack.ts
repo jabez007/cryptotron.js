@@ -77,8 +77,11 @@ export function crack(
 
     for (let i = 0; i < iterations; i++) {
       const a = Math.floor(rng() * 26);
+      // Bounded retry to ensure a !== b
       let b = Math.floor(rng() * 26);
-      while (a === b) b = Math.floor(rng() * 26);
+      if (a === b) {
+        b = (a + 1) % 26;
+      }
 
       // Perform in-place swap to reduce allocations as requested
       [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];

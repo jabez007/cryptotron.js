@@ -68,10 +68,9 @@ export function baseCrack<K = any>(options: BaseCrackOptions<K>) {
       const shiftsWithScores: { shift: number; score: number }[] = [];
       
       let column = '';
-      if (periodic) {
-        for (let j = i; j < normalized.length; j += klen) {
-          column += normalized[j];
-        }
+      // Simplified: periodic is always true here due to early throw
+      for (let j = i; j < normalized.length; j += klen) {
+        column += normalized[j];
       }
       
       // Fix for empty column alignment issue

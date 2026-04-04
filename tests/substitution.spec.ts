@@ -1,6 +1,14 @@
 import assert from 'assert';
 import { encrypt, decrypt, crack } from '../src/ciphers/substitution';
 
+// Simple seeded RNG for deterministic testing
+function createSeededRng(seed: number) {
+  return function() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+
 describe('Substitution', function () {
   
   describe('#encrypt', function () {
@@ -23,7 +31,9 @@ describe('Substitution', function () {
       const cipherAlphabet = "PHQGIUMEAYLNFJKRZVSOXDTBCW";
       const ciphertext = encrypt({ cipherAlphabet })(originalText);
       
-      const result = crack(ciphertext, 10, 15000);
+      // Use a seeded RNG for deterministic results
+      const rng = createSeededRng(42);
+      const result = crack(ciphertext, 10, 15000, rng);
       
       const decrypted = result.plaintext.toUpperCase();
       assert.ok(decrypted.includes("SUBSTITUTION"), `Expected 'SUBSTITUTION' in: ${decrypted}`);
