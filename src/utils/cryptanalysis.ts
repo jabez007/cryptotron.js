@@ -13,6 +13,9 @@ const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(f
  * @returns {string} The normalized text
  */
 export function normalize(text: string): string {
+  if (typeof text !== 'string') {
+    throw new TypeError(`Expected input to be a string, received ${typeof text}`);
+  }
   return text.toUpperCase().replace(/[^A-Z]/g, '');
 }
 
@@ -50,9 +53,16 @@ export function scoreMonograms(text: string): number {
  * @returns {number} A safe random number in the range [0, 1)
  */
 export function getSafeRandom(rng: () => number): number {
-  const val = Number(rng());
-  if (!Number.isFinite(val)) return Math.random();
-  return Math.max(0, Math.min(1 - Number.EPSILON, val));
+  let val: any;
+  try {
+    val = rng();
+  } catch {
+    return Math.random();
+  }
+  
+  const num = Number(val);
+  if (!Number.isFinite(num)) return Math.random();
+  return Math.max(0, Math.min(1 - Number.EPSILON, num));
 }
 
 /**

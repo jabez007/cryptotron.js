@@ -4,15 +4,24 @@ import { alphaLower } from '../../utils/index.ts';
 
 /**
  * Detects the most likely characters used as coordinates in a Polybius Square ciphertext.
+ * Only counts characters that appear in valid adjacent pairs to exclude separators.
  * 
  * @param {string} ciphertext - The text to analyze
- * @returns {string} The 5 most frequent non-whitespace characters, sorted alphabetically
+ * @returns {string} The 5 most frequent coordinate characters, sorted alphabetically
  */
 function detectCipherChars(ciphertext: string): string {
   const counts: Record<string, number> = {};
-  for (const char of ciphertext) {
-    if (/\S/.test(char)) {
-      counts[char] = (counts[char] || 0) + 1;
+  
+  // Count only characters appearing in valid adjacent pairs
+  for (let i = 0; i < ciphertext.length - 1; i++) {
+    const char1 = ciphertext[i];
+    const char2 = ciphertext[i+1];
+    
+    // Polybius coordinates are typically non-whitespace
+    if (/\S/.test(char1) && /\S/.test(char2)) {
+      counts[char1] = (counts[char1] || 0) + 1;
+      counts[char2] = (counts[char2] || 0) + 1;
+      i++; // Skip to next potential pair
     }
   }
   
@@ -130,9 +139,10 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
 
   for (let r = 0; r < 20; r++) {
     const currentGridArr = shuffle(alphabet25, rng);
+    // Use original ciphertext for search/scoring to ensure consistency
     let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
-    for (let i = 0; i < 20000; i++) {
+    for (let i = 0; i < 10000; i++) {
       // Pick indices a and b deterministically using safe random values
       const valA = getSafeRandom(rng);
       const a = Math.floor(valA * 25);
