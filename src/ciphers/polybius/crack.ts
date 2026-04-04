@@ -1,38 +1,46 @@
-import { buildCipherSquare } from '@utils';
 import { getScorer, getSafeRandom } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 /**
  * Detects the most likely characters used as coordinates in a Polybius Square ciphertext.
- * Only counts characters that appear in valid adjacent pairs to exclude separators.
+ * Prioritizes alphanumeric characters and only counts those appearing in pairs.
  * 
  * @param {string} ciphertext - The text to analyze
  * @returns {string} The 5 most frequent coordinate characters, sorted alphabetically
  */
 function detectCipherChars(ciphertext: string): string {
-  const counts: Record<string, number> = {};
-  
-  // Count only characters appearing in valid adjacent pairs
-  for (let i = 0; i < ciphertext.length - 1; i++) {
-    const char1 = ciphertext[i];
-    const char2 = ciphertext[i+1];
-    
-    // Polybius coordinates are typically non-whitespace
-    if (/\S/.test(char1) && /\S/.test(char2)) {
-      counts[char1] = (counts[char1] || 0) + 1;
-      counts[char2] = (counts[char2] || 0) + 1;
-      i++; // Skip to next potential pair
+  const countInPairs = (regex: RegExp) => {
+    const counts: Record<string, number> = {};
+    let pairsFound = 0;
+    for (let i = 0; i < ciphertext.length - 1; i++) {
+      const c1 = ciphertext[i];
+      const c2 = ciphertext[i+1];
+      if (regex.test(c1) && regex.test(c2)) {
+        counts[c1] = (counts[c1] || 0) + 1;
+        counts[c2] = (counts[c2] || 0) + 1;
+        pairsFound++;
+        i++; // Move past the pair
+      }
     }
+    return { counts, pairsFound };
+  };
+
+  // Try alphanumeric first to exclude common non-alphanumeric separators
+  let result = countInPairs(/[a-zA-Z0-9]/);
+  
+  // If not enough pairs found, fallback to any non-whitespace characters
+  if (result.pairsFound < 2) {
+    result = countInPairs(/\S/);
   }
   
-  let sorted = Object.entries(counts)
+  let sorted = Object.entries(result.counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(e => e[0])
     .sort()
     .join('');
 
-  // Ensure we return exactly 5 characters
+  // Ensure we return exactly 5 characters by padding with defaults if needed
   if (sorted.length < 5) {
     const defaults = '12345';
     for (const d of defaults) {
@@ -107,31 +115,26 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
   };
 
   const decryptWithGrid = (text: string, grid: string) => {
-    const keySquare = buildCipherSquare(grid);
     let result = '';
     let i = 0;
     while (i < text.length) {
-      const char = text.charAt(i);
-      const row = detectedChars.indexOf(char);
+      const char1 = text.charAt(i);
+      const row = detectedChars.indexOf(char1);
       
-      if (row !== -1) {
-        i += 1;
-        if (i >= text.length) {
-          result += char;
-          break;
-        }
+      if (row !== -1 && i + 1 < text.length) {
+        const char2 = text.charAt(i + 1);
+        const col = detectedChars.indexOf(char2);
         
-        const col = detectedChars.indexOf(text.charAt(i));
-        if (col === -1) {
-          result += char;
-          // Back up to process the current non-coordinate character in next iteration
-          i -= 1;
-        } else {
-          result += keySquare[row][col];
+        if (col !== -1) {
+          // Optimized: index into 25-char grid string directly
+          result += grid[row * 5 + col];
+          i += 2;
+          continue;
         }
-      } else {
-        result += char;
       }
+      
+      // Handle non-coordinate characters or standalone characters at the end
+      result += char1;
       i += 1;
     }
     return result;
@@ -142,7 +145,7 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
     // Use original ciphertext for search/scoring to ensure consistency
     let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 20000; i++) {
       // Pick indices a and b deterministically using safe random values
       const valA = getSafeRandom(rng);
       const a = Math.floor(valA * 25);
