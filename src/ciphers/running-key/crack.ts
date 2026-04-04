@@ -9,11 +9,8 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  * @returns {string} The expanded key text
  */
 function buildKeyText(keyword: string, alphabeticLength: number): string {
-  let keyText = '';
-  while (keyText.length < alphabeticLength) {
-    keyText += keyword;
-  }
-  return keyText.substring(0, alphabeticLength);
+  const count = Math.ceil(alphabeticLength / keyword.length);
+  return keyword.repeat(count).substring(0, alphabeticLength);
 }
 
 /**
