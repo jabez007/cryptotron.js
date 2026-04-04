@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize, getSafeRandom } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 const ALPHA_UPPER = alphaLower.toUpperCase();
@@ -45,12 +45,6 @@ export function crack(
   
   let bestAlphabet = ALPHA_UPPER;
   let bestOverallScore = -Infinity;
-
-  const getSafeRandom = (random: () => number): number => {
-    const val = Number(random());
-    if (!Number.isFinite(val)) return Math.random();
-    return Math.max(0, Math.min(1 - Number.EPSILON, val));
-  };
 
   const shuffle = (str: string, random: () => number) => {
     const arr = str.split('');

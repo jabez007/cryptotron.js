@@ -43,6 +43,19 @@ export function scoreMonograms(text: string): number {
 }
 
 /**
+ * Safely executes a random number generator function, ensuring the output
+ * is a finite number clamped between [0, 1). Falls back to Math.random() if needed.
+ * 
+ * @param {Function} rng - The random number generator function
+ * @returns {number} A safe random number in the range [0, 1)
+ */
+export function getSafeRandom(rng: () => number): number {
+  const val = Number(rng());
+  if (!Number.isFinite(val)) return Math.random();
+  return Math.max(0, Math.min(1 - Number.EPSILON, val));
+}
+
+/**
  * A class for scoring text using n-gram frequency analysis.
  */
 export class Scorer {

@@ -1,5 +1,5 @@
 import { buildCipherSquare } from '@utils';
-import { getScorer } from '../../utils/cryptanalysis.ts';
+import { getScorer, getSafeRandom } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 
 /**
@@ -87,8 +87,12 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
   const shuffle = (str: string, random: () => number): string[] => {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const val = getSafeRandom(random);
+      const j = Math.floor(val * (i + 1));
+      
+      if (Number.isInteger(j) && j >= 0 && j <= i) {
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
     }
     return arr;
   };
@@ -126,15 +130,17 @@ export function crack(ciphertext: string, rng: () => number = Math.random) {
 
   for (let r = 0; r < 20; r++) {
     const currentGridArr = shuffle(alphabet25, rng);
-    // Use original ciphertext for search/scoring to ensure consistency
     let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
     for (let i = 0; i < 20000; i++) {
-      // Pick indices a and b deterministically within calculation to avoid retry loops
-      const a = Math.floor(rng() * 25);
-      const b = (a + 1 + Math.floor(rng() * 24)) % 25;
+      // Pick indices a and b deterministically using safe random values
+      const valA = getSafeRandom(rng);
+      const a = Math.floor(valA * 25);
+      
+      const valB = getSafeRandom(rng);
+      const b = (a + 1 + Math.floor(valB * 24)) % 25;
 
-      // Perform in-place swap to reduce allocations as requested
+      // Perform in-place swap
       [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
       const nextGrid = currentGridArr.join('');
       
