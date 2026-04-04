@@ -46,11 +46,22 @@ export function crack(
   let bestAlphabet = ALPHA_UPPER;
   let bestOverallScore = -Infinity;
 
+  const getSafeRandom = (random: () => number): number => {
+    const val = Number(random());
+    if (!Number.isFinite(val)) return Math.random();
+    return Math.max(0, Math.min(1 - Number.EPSILON, val));
+  };
+
   const shuffle = (str: string, random: () => number) => {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const val = getSafeRandom(random);
+      const j = Math.floor(val * (i + 1));
+      
+      // Defensive check for j index
+      if (Number.isInteger(j) && j >= 0 && j <= i) {
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
     }
     return arr.join('');
   };
@@ -76,9 +87,13 @@ export function crack(
     let currentScore = scorer.score(currentDecrypted);
 
     for (let i = 0; i < iterations; i++) {
-      const a = Math.floor(rng() * 26);
-      // Bounded retry to ensure a !== b
-      let b = Math.floor(rng() * 26);
+      const valA = getSafeRandom(rng);
+      const a = Math.floor(valA * 26);
+      
+      const valB = getSafeRandom(rng);
+      let b = Math.floor(valB * 26);
+      
+      // Ensure a !== b
       if (a === b) {
         b = (a + 1) % 26;
       }

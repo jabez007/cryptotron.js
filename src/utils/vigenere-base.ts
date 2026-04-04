@@ -18,8 +18,6 @@ export interface BaseCrackOptions<K = any> {
   decryptFull: (key: K) => (text: string) => string;
   /** Factory function to create a key object from a keyword string */
   keyFactory: (keyword: string) => K;
-  /** Whether the cipher is periodic (repeating key) or not (contiguous segments) */
-  periodic?: boolean;
 }
 
 /**
@@ -40,13 +38,7 @@ export function baseCrack<K = any>(options: BaseCrackOptions<K>) {
     decryptColumnChar,
     decryptFull,
     keyFactory,
-    periodic = true,
   } = options;
-
-  // Non-periodic cracking is not supported by this generic helper
-  if (periodic === false) {
-    throw new Error('Non-periodic cracking is not supported by baseCrack.');
-  }
 
   // Validate bounds early with strict checks for finite integers
   if (!Number.isInteger(minKeyLength) || !Number.isInteger(maxKeyLength) || 
@@ -68,7 +60,6 @@ export function baseCrack<K = any>(options: BaseCrackOptions<K>) {
       const shiftsWithScores: { shift: number; score: number }[] = [];
       
       let column = '';
-      // Simplified: periodic is always true here due to early throw
       for (let j = i; j < normalized.length; j += klen) {
         column += normalized[j];
       }
