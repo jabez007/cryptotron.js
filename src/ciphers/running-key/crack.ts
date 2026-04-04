@@ -25,20 +25,24 @@ function buildKeyText(keyword: string, alphabeticLength: number): string {
  * Uses n-gram frequency analysis to estimate the most likely repeating keyword.
  * 
  * @param {string} ciphertext - The text to crack
- * @param {number} maxKeyLength - Maximum keyword length to test for the repeating key assumption (default 20)
+ * @param {number} maxKeyLength - Maximum keyword length to test for the repeating key assumption (default 20).
+ * Values up to the length of the ciphertext will be honored.
  * @returns {Object} The recovered key (keyText) and decrypted plaintext
  */
 export function crack(ciphertext: string, maxKeyLength: number = 20) {
   const normalized = normalize(ciphertext);
   
-  // Sanitize and clamp maxKeyLength
+  // Sanitize and clamp maxKeyLength without hardcoded upper bound
   const maxKeyLengthSanitized = Number.isFinite(maxKeyLength) 
     ? Math.max(1, Math.floor(maxKeyLength)) 
     : 1;
-  const effectiveMaxKeyLength = Math.min(maxKeyLengthSanitized, normalized.length, 20);
+  const effectiveMaxKeyLength = Math.min(maxKeyLengthSanitized, normalized.length);
 
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
+  // Compute and store alphabetic character count once
+  const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
+
   let bestKeyword = 'A';
   let bestOverallScore = -Infinity;
 
@@ -71,8 +75,6 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
       shiftsWithScores.sort((a, b) => b.score - a.score);
       topShifts.push([shiftsWithScores[0].shift, shiftsWithScores[1].shift]);
     }
-
-    const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
 
     if (klen <= 12) {
       const combinations = 1 << klen;
@@ -109,7 +111,6 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
     }
   }
 
-  const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
   const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
 
   return {
