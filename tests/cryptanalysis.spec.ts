@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { getScorer } from '../src/utils/cryptanalysis.ts';
+import { getScorer } from '../src/utils/cryptanalysis';
 
 describe('Cryptanalysis Utilities', function () {
   describe('#getScorer', function () {

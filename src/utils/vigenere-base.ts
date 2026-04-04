@@ -47,13 +47,27 @@ export function baseCrack<K = any>(options: BaseCrackOptions<K>) {
   }
 
   const normalized = normalize(ciphertext);
+  
+  // Clamp key length search within normalized ciphertext length
+  const effectiveMaxKeyLength = Math.min(maxKeyLength, normalized.length);
+  const effectiveMinKeyLength = Math.min(minKeyLength, effectiveMaxKeyLength);
+
+  // Fallback for case where minKeyLength > normalized.length
+  if (effectiveMaxKeyLength < 1) {
+    const finalKey = keyFactory(initialBestKeyword);
+    return {
+      key: finalKey,
+      plaintext: ciphertext,
+    };
+  }
+
   // Conditional fallback for short ciphertexts
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
   let bestKeyword = initialBestKeyword;
   let bestOverallScore = -Infinity;
 
-  for (let klen = minKeyLength; klen <= maxKeyLength; klen++) {
+  for (let klen = effectiveMinKeyLength; klen <= effectiveMaxKeyLength; klen++) {
     const topShifts: number[][] = [];
     
     for (let i = 0; i < klen; i++) {

@@ -29,7 +29,17 @@ export function encrypt(key: { keyword: string; cipherChars: string }) {
     );
   }
 
-  const keySquare = buildCipherSquare(key.keyword);
+  // Honor raw grid if exactly 25 characters and contains no 'j'
+  const keySquare = (key.keyword.length === 25 && !key.keyword.toLowerCase().includes('j'))
+    ? (function() {
+        const grid = key.keyword.toLowerCase();
+        const sq = new Array(5).fill(null).map(() => new Array(5).fill(null));
+        for (let i = 0; i < 25; i++) {
+          sq[Math.floor(i / 5)][i % 5] = grid[i];
+        }
+        return sq;
+      })()
+    : buildCipherSquare(key.keyword);
 
   return (plainText: string) => {
     const plaintext = plainText.toLowerCase().replace(/[j]/g, 'i');

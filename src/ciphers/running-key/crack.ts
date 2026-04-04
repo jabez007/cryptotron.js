@@ -2,6 +2,21 @@ import { decrypt } from './decrypt.ts';
 import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
 
 /**
+ * Repeats and truncates a keyword to match a specific alphabetic length.
+ * 
+ * @param {string} keyword - The keyword to expand
+ * @param {number} alphabeticLength - The target length
+ * @returns {string} The expanded key text
+ */
+function buildKeyText(keyword: string, alphabeticLength: number): string {
+  let keyText = '';
+  while (keyText.length < alphabeticLength) {
+    keyText += keyword;
+  }
+  return keyText.substring(0, alphabeticLength);
+}
+
+/**
  * Cracks the Running Key cipher.
  * 
  * NOTE: This implementation assumes the key is a repeating short keyword (treating it like a Vigenère cipher).
@@ -15,12 +30,19 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  */
 export function crack(ciphertext: string, maxKeyLength: number = 20) {
   const normalized = normalize(ciphertext);
+  
+  // Sanitize and clamp maxKeyLength
+  const maxKeyLengthSanitized = Number.isFinite(maxKeyLength) 
+    ? Math.max(1, Math.floor(maxKeyLength)) 
+    : 1;
+  const effectiveMaxKeyLength = Math.min(maxKeyLengthSanitized, normalized.length, 20);
+
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
   let bestKeyword = 'A';
   let bestOverallScore = -Infinity;
 
-  for (let klen = 1; klen <= maxKeyLength; klen++) {
+  for (let klen = 1; klen <= effectiveMaxKeyLength; klen++) {
     const topShifts: number[][] = [];
     
     for (let i = 0; i < klen; i++) {
@@ -50,6 +72,8 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
       topShifts.push([shiftsWithScores[0].shift, shiftsWithScores[1].shift]);
     }
 
+    const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
+
     if (klen <= 12) {
       const combinations = 1 << klen;
       for (let c = 0; c < combinations; c++) {
@@ -59,14 +83,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
           keyword += String.fromCharCode(topShifts[i][bit] + 65);
         }
         
-        // Cleaned key text logic
-        const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
-        let keyText = '';
-        while (keyText.length < alphabeticLength) {
-          keyText += keyword;
-        }
-        keyText = keyText.substring(0, alphabeticLength);
-
+        const keyText = buildKeyText(keyword, alphabeticLength);
         const plaintext = decrypt({ keyText })(ciphertext);
         const score = scorer.score(plaintext);
         
@@ -81,13 +98,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
         keyword += String.fromCharCode(topShifts[i][0] + 65);
       }
       
-      const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
-      let keyText = '';
-      while (keyText.length < alphabeticLength) {
-        keyText += keyword;
-      }
-      keyText = keyText.substring(0, alphabeticLength);
-
+      const keyText = buildKeyText(keyword, alphabeticLength);
       const plaintext = decrypt({ keyText })(ciphertext);
       const score = scorer.score(plaintext);
       
@@ -99,11 +110,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
   }
 
   const alphabeticLength = ciphertext.replace(/[^A-Za-z]/g, '').length;
-  let finalKeyText = '';
-  while (finalKeyText.length < alphabeticLength) {
-    finalKeyText += bestKeyword;
-  }
-  finalKeyText = finalKeyText.substring(0, alphabeticLength);
+  const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
 
   return {
     key: { keyText: finalKeyText },

@@ -35,7 +35,9 @@ describe('Autokey', function () {
       const ciphertext = encrypt({ primer })(originalText);
       const result = crack(ciphertext);
       
+      // Verify both plaintext and recovered primer
       assert.strictEqual(result.plaintext, originalText);
+      assert.strictEqual(result.key.primer.toUpperCase(), primer.toUpperCase());
     });
   });
 });
