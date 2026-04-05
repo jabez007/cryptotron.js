@@ -4,136 +4,177 @@ import { alphaLower } from '../../utils/index.ts';
 import { CrackResult } from '@/types.ts';
 
 /**
- * Detects the most likely 5 characters used as coordinates in a Polybius square.
+ * Detects the most likely characters used as coordinates in a Polybius Square ciphertext.
+ * Prioritizes alphanumeric characters and only counts those appearing in pairs.
  * 
  * @param {string} ciphertext - The text to analyze
- * @returns {string} Exactly 5 unique coordinate characters
+ * @returns {string} The 5 most frequent coordinate characters, sorted alphabetically
  */
 function detectCipherChars(ciphertext: string): string {
-  const counts: { [char: string]: number } = {};
-  
-  // Only count characters that appear in valid pairs to avoid scoring noise/separators
-  let lastCoord: string | null = null;
-  for (const char of ciphertext) {
-    if (/[A-Za-z0-9]/.test(char)) {
-      if (lastCoord === null) {
-        lastCoord = char;
-      } else {
-        counts[lastCoord] = (counts[lastCoord] || 0) + 1;
-        counts[char] = (counts[char] || 0) + 1;
-        lastCoord = null;
+  const countInPairs = (regex: RegExp) => {
+    const counts: Record<string, number> = {};
+    let pairsFound = 0;
+    for (let i = 0; i < ciphertext.length - 1; i++) {
+      const c1 = ciphertext[i];
+      const c2 = ciphertext[i+1];
+      if (regex.test(c1) && regex.test(c2)) {
+        counts[c1] = (counts[c1] || 0) + 1;
+        counts[c2] = (counts[c2] || 0) + 1;
+        pairsFound++;
+        i++; // Move past the pair
       }
     }
-  }
+    return { counts, pairsFound };
+  };
 
-  const sortedChars = Object.entries(counts)
+  // Try alphanumeric first to exclude common non-alphanumeric separators
+  let result = countInPairs(/[a-zA-Z0-9]/);
+  
+  // If not enough pairs found, fallback to any non-whitespace characters
+  if (result.pairsFound < 2) {
+    result = countInPairs(/\S/);
+  }
+  
+  let sorted = Object.entries(result.counts)
     .sort((a, b) => b[1] - a[1])
-    .map(([char]) => char);
-  
-  const result = sortedChars.slice(0, 5).join('');
-  return result.length === 5 ? result : '12345';
-}
+    .slice(0, 5)
+    .map(e => e[0])
+    .sort()
+    .join('');
 
-/**
- * Optimized decryption for hill-climbing that avoids redundant square building.
- */
-function decryptWithGrid(ciphertext: string, grid: string[], cipherChars: string): string {
-  let outputText = '';
-  let i = 0;
-  while (i < ciphertext.length) {
-    const char1 = ciphertext.charAt(i);
-    const row = cipherChars.indexOf(char1);
-
-    if (row !== -1) {
-      let j = i + 1;
-      while (j < ciphertext.length) {
-        const char2 = ciphertext.charAt(j);
-        const col = cipherChars.indexOf(char2);
-        if (col !== -1) {
-          outputText += grid[row * 5 + col];
-          i = j + 1;
-          break;
-        }
-        j++;
+  // Ensure we return exactly 5 characters by padding with defaults if needed
+  if (sorted.length < 5) {
+    const defaults = '12345';
+    for (const d of defaults) {
+      if (!sorted.includes(d)) {
+        sorted += d;
       }
-      if (j >= ciphertext.length) {
-        outputText += char1;
-        i++;
-      }
-    } else {
-      outputText += char1;
-      i++;
+      if (sorted.length === 5) break;
     }
+    sorted = sorted.split('').sort().join('');
   }
-  return outputText;
+    
+  return sorted;
 }
 
 /**
- * Cracks the Polybius cipher using hill-climbing frequency analysis.
+ * Cracks the Polybius Square cipher.
  * 
- * Hill-climbing starts with a random 25-character grid and iteratively
- * swaps pairs of characters to find a grid with a higher n-gram score.
+ * Uses a hill-climbing algorithm to recover the 5x5 grid.
+ * Automatically detects the characters used as coordinates.
  * 
  * @param {string} ciphertext - The text to crack
- * @param {Function} rng - Optional random number generator for shuffling/swapping
- * @returns {CrackResult<{ keyword: string; cipherChars: string }>} The recovered grid and decrypted plaintext
+ * @param {Function} [rng] - Optional random number generator (default Math.random)
+ * @returns {CrackResult<{ keyword: string; cipherChars: string }>} The recovered key (grid as keyword) and decrypted plaintext
  */
 export function crack(ciphertext: string, rng: () => number = Math.random): CrackResult<{ keyword: string; cipherChars: string }> {
-  const normalized = normalize(ciphertext);
+  const detectedChars = detectCipherChars(ciphertext);
+  const charSet = new Set(detectedChars.split(''));
+
+  // Compute actual adjacent valid pairs from original ciphertext
+  let adjacentPairCount = 0;
+  for (let i = 0; i < ciphertext.length - 1; i++) {
+    if (charSet.has(ciphertext[i]) && charSet.has(ciphertext[i+1])) {
+      adjacentPairCount++;
+      i++; // Skip the second part of the pair
+    }
+  }
   
-  // Guard against empty normalized ciphertext
-  if (normalized.length === 0) {
+  const alphabet25 = alphaLower.replace('j', '');
+
+  // Check for incomplete polybius pairs
+  if (adjacentPairCount === 0) {
     return {
-      key: { keyword: 'abcde fghik lmnop qrstu vwxyz'.replace(/ /g, ''), cipherChars: '12345' },
+      key: { keyword: alphabet25, cipherChars: detectedChars },
       plaintext: ciphertext,
     };
   }
 
-  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length / 2)));
-  const cipherChars = detectCipherChars(ciphertext);
+  // Seed getScorer with adjacentPairCount
+  const scorer = getScorer(Math.max(1, Math.min(4, adjacentPairCount)));
   
-  const alphabet = alphaLower.replace('j', '').split('');
+  // Polybius is essentially a substitution cipher where each letter is replaced by two digits.
+  // The hill-climber recovers the 5x5 grid mapping to the detectedChars.
   
-  // Shuffle alphabet to create initial grid
-  for (let i = alphabet.length - 1; i > 0; i--) {
-    const j = Math.floor(getSafeRandom(rng) * (i + 1));
-    [alphabet[i], alphabet[j]] = [alphabet[j], alphabet[i]];
-  }
+  let bestGridArr = alphabet25.split('');
+  let bestOverallScore = -Infinity;
 
-  let bestGrid = [...alphabet];
-  let bestPlaintext = decryptWithGrid(ciphertext, bestGrid, cipherChars);
-  let bestScore = scorer.score(bestPlaintext);
+  const shuffle = (str: string, random: () => number): string[] => {
+    const arr = str.split('');
+    for (let i = arr.length - 1; i > 0; i--) {
+      const val = getSafeRandom(random);
+      const j = Math.floor(val * (i + 1));
+      
+      if (Number.isInteger(j) && j >= 0 && j <= i) {
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+    return arr;
+  };
 
-  let iterationsWithoutImprovement = 0;
-  const maxIterations = 2000;
+  const decryptWithGrid = (text: string, grid: string) => {
+    let result = '';
+    let i = 0;
+    while (i < text.length) {
+      const char1 = text.charAt(i);
+      const row = detectedChars.indexOf(char1);
+      
+      if (row !== -1 && i + 1 < text.length) {
+        const char2 = text.charAt(i + 1);
+        const col = detectedChars.indexOf(char2);
+        
+        if (col !== -1) {
+          // Optimized: index into 25-char grid string directly
+          result += grid[row * 5 + col];
+          i += 2;
+          continue;
+        }
+      }
+      
+      // Handle non-coordinate characters or standalone characters at the end
+      result += char1;
+      i += 1;
+    }
+    return result;
+  };
 
-  while (iterationsWithoutImprovement < maxIterations) {
-    const i = Math.floor(getSafeRandom(rng) * 25);
-    const j = Math.floor(getSafeRandom(rng) * 25);
-    
-    // Swap two characters in the grid
-    [alphabet[i], alphabet[j]] = [alphabet[j], alphabet[i]];
-    
-    const plaintext = decryptWithGrid(ciphertext, alphabet, cipherChars);
-    const score = scorer.score(plaintext);
+  for (let r = 0; r < 20; r++) {
+    const currentGridArr = shuffle(alphabet25, rng);
+    // Use original ciphertext for search/scoring to ensure consistency
+    let currentScore = scorer.score(decryptWithGrid(ciphertext, currentGridArr.join('')));
 
-    if (score > bestScore) {
-      bestScore = score;
-      bestGrid = [...alphabet];
-      bestPlaintext = plaintext;
-      iterationsWithoutImprovement = 0;
-    } else {
-      // Revert swap
-      [alphabet[i], alphabet[j]] = [alphabet[j], alphabet[i]];
-      iterationsWithoutImprovement++;
+    for (let i = 0; i < 20000; i++) {
+      // Pick indices a and b deterministically using safe random values
+      const valA = getSafeRandom(rng);
+      const a = Math.floor(valA * 25);
+      
+      const valB = getSafeRandom(rng);
+      const b = (a + 1 + Math.floor(valB * 24)) % 25;
+
+      // Perform in-place swap
+      [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
+      const nextGrid = currentGridArr.join('');
+      
+      const nextDecrypted = decryptWithGrid(ciphertext, nextGrid);
+      const nextScore = scorer.score(nextDecrypted);
+
+      if (nextScore > currentScore) {
+        currentScore = nextScore;
+      } else {
+        // Swap back to revert
+        [currentGridArr[a], currentGridArr[b]] = [currentGridArr[b], currentGridArr[a]];
+      }
+    }
+
+    if (currentScore > bestOverallScore) {
+      bestOverallScore = currentScore;
+      bestGridArr = [...currentGridArr];
     }
   }
 
+  const bestGrid = bestGridArr.join('');
   return {
-    key: { 
-      keyword: bestGrid.join(''), 
-      cipherChars 
-    },
-    plaintext: bestPlaintext,
+    key: { keyword: bestGrid, cipherChars: detectedChars },
+    plaintext: decryptWithGrid(ciphertext, bestGrid),
   };
 }

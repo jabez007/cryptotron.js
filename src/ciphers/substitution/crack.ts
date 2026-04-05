@@ -7,17 +7,29 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 /**
  * Cracks the Simple Substitution cipher using hill-climbing frequency analysis.
  * 
- * The algorithm starts with a random alphabet and iteratively swaps two
- * characters to find an alphabet with a higher n-gram score.
+ * Uses n-gram frequency analysis to iteratively improve a random cipher alphabet.
+ * Swaps two characters in the alphabet and keeps the swap if it improves the score.
  * 
  * @param {string} ciphertext - The text to crack
- * @param {Function} rng - Optional random number generator for shuffling/swapping
+ * @param {number} restarts - Number of times to restart with a random key (default 20)
+ * @param {number} iterations - Number of swaps per restart (default 20000)
+ * @param {Function} rng - Optional random number generator (default Math.random)
  * @returns {CrackResult<{ cipherAlphabet: string }>} The recovered cipher alphabet and decrypted plaintext
  */
 export function crack(
   ciphertext: string, 
+  restarts: number = 20, 
+  iterations: number = 20000,
   rng: () => number = Math.random
 ): CrackResult<{ cipherAlphabet: string }> {
+  // Validate numeric inputs
+  if (!Number.isInteger(restarts) || restarts <= 0) {
+    throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a positive integer.`);
+  }
+  if (!Number.isInteger(iterations) || iterations <= 0) {
+    throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a positive integer.`);
+  }
+
   const normalized = normalize(ciphertext);
   
   // Guard against empty normalized ciphertext
@@ -30,49 +42,66 @@ export function crack(
 
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
-  // Create a mutable copy of the alphabet
-  const currentAlphabet = alphabet.split('');
-  
-  // Initial shuffle using Fisher-Yates
-  for (let i = 25; i > 0; i--) {
-    const j = Math.floor(getSafeRandom(rng) * (i + 1));
-    [currentAlphabet[i], currentAlphabet[j]] = [currentAlphabet[j], currentAlphabet[i]];
-  }
+  let bestAlphabet = alphabet;
+  let bestOverallScore = -Infinity;
 
-  let bestAlphabet = currentAlphabet.join('');
-  let bestPlaintext = decrypt({ cipherAlphabet: bestAlphabet })(ciphertext);
-  let bestScore = scorer.score(bestPlaintext);
+  const shuffle = (str: string, random: () => number) => {
+    const arr = str.split('');
+    for (let i = arr.length - 1; i > 0; i--) {
+      const val = getSafeRandom(random);
+      const j = Math.floor(val * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.join('');
+  };
 
-  let iterationsWithoutImprovement = 0;
-  const maxIterations = 1000;
+  const decryptFast = (text: string, cipherAlpha: string) => {
+    let result = '';
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const pos = cipherAlpha.indexOf(char);
+      if (pos === -1) {
+        result += char;
+      } else {
+        result += alphabet[pos];
+      }
+    }
+    return result;
+  };
 
-  const alphabetArr = bestAlphabet.split('');
+  for (let r = 0; r < restarts; r++) {
+    let currentAlphabet = shuffle(alphabet, rng);
+    const alphabetArr = currentAlphabet.split('');
+    let currentScore = scorer.score(decryptFast(normalized, currentAlphabet));
 
-  while (iterationsWithoutImprovement < maxIterations) {
-    const i = Math.floor(getSafeRandom(rng) * 26);
-    const j = Math.floor(getSafeRandom(rng) * 26);
-    
-    // Swap two characters in the cipher alphabet
-    [alphabetArr[i], alphabetArr[j]] = [alphabetArr[j], alphabetArr[i]];
-    
-    const testAlphabet = alphabetArr.join('');
-    const plaintext = decrypt({ cipherAlphabet: testAlphabet })(ciphertext);
-    const score = scorer.score(plaintext);
+    for (let i = 0; i < iterations; i++) {
+      const a = Math.floor(getSafeRandom(rng) * 26);
+      let b = Math.floor(getSafeRandom(rng) * 26);
+      if (a === b) b = (a + 1) % 26;
 
-    if (score > bestScore) {
-      bestScore = score;
-      bestAlphabet = testAlphabet;
-      bestPlaintext = plaintext;
-      iterationsWithoutImprovement = 0;
-    } else {
-      // Revert the swap
-      [alphabetArr[i], alphabetArr[j]] = [alphabetArr[j], alphabetArr[i]];
-      iterationsWithoutImprovement++;
+      // Swap in place
+      [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
+      const nextAlphabet = alphabetArr.join('');
+      
+      const nextScore = scorer.score(decryptFast(normalized, nextAlphabet));
+
+      if (nextScore > currentScore) {
+        currentScore = nextScore;
+        currentAlphabet = nextAlphabet;
+      } else {
+        // Swap back to revert
+        [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
+      }
+    }
+
+    if (currentScore > bestOverallScore) {
+      bestOverallScore = currentScore;
+      bestAlphabet = currentAlphabet;
     }
   }
 
   return {
     key: { cipherAlphabet: bestAlphabet },
-    plaintext: bestPlaintext,
+    plaintext: decrypt({ cipherAlphabet: bestAlphabet })(ciphertext),
   };
 }
