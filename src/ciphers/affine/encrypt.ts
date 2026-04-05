@@ -1,4 +1,5 @@
 import { getCharOffset, modulo, transform, gcd } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
  * Encrypts a message using the Affine cipher.
@@ -21,11 +22,11 @@ import { getCharOffset, modulo, transform, gcd } from '@utils';
  * @param {Object} key - The encryption key containing alpha and beta values.
  * @param {number} key.alpha - Must be an integer, used to multiply each letter's number.
  * @param {number} key.beta - Must be an integer, added after multiplication.
- * @returns {Function} A function that transforms a plaintext message into its encrypted form.
+ * @returns {CipherTransformer} A function that transforms a plaintext message into its encrypted form.
  * @throws {Error} If `alpha` or `beta` are not integers.
  * @throws {Error} If `alpha` is not coprime with 26.
  */
-export function encrypt(key: { alpha: number; beta: number }) {
+export function encrypt(key: { alpha: number; beta: number }): CipherTransformer {
   if (!(Number.isInteger(key.alpha) && Number.isInteger(key.beta))) {
     throw new Error('Both key values must be integers');
   }

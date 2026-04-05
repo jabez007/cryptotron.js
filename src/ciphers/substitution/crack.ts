@@ -1,11 +1,11 @@
 import { decrypt } from './decrypt.ts';
 import { getScorer, normalize, getSafeRandom } from '../../utils/cryptanalysis.ts';
-import { alphaLower } from '../../utils/index.ts';
+import { CrackResult } from '@/types.ts';
 
-const ALPHA_UPPER = alphaLower.toUpperCase();
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /**
- * Cracks the Simple Substitution cipher using hill-climbing.
+ * Cracks the Simple Substitution cipher using hill-climbing frequency analysis.
  * 
  * Uses n-gram frequency analysis to iteratively improve a random cipher alphabet.
  * Swaps two characters in the alphabet and keeps the swap if it improves the score.
@@ -13,16 +13,16 @@ const ALPHA_UPPER = alphaLower.toUpperCase();
  * @param {string} ciphertext - The text to crack
  * @param {number} restarts - Number of times to restart with a random key (default 20)
  * @param {number} iterations - Number of swaps per restart (default 20000)
- * @param {Function} [rng] - Optional random number generator (default Math.random)
- * @returns {Object} The recovered key (cipherAlphabet) and decrypted plaintext
+ * @param {Function} rng - Optional random number generator (default Math.random)
+ * @returns {CrackResult<{ cipherAlphabet: string }>} The recovered cipher alphabet and decrypted plaintext
  */
 export function crack(
   ciphertext: string, 
   restarts: number = 20, 
   iterations: number = 20000,
   rng: () => number = Math.random
-) {
-  // Validate numeric inputs up front as requested
+): CrackResult<{ cipherAlphabet: string }> {
+  // Validate numeric inputs
   if (!Number.isInteger(restarts) || restarts <= 0) {
     throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a positive integer.`);
   }
@@ -30,20 +30,19 @@ export function crack(
     throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a positive integer.`);
   }
 
-  const normalizedCipher = normalize(ciphertext);
+  const normalized = normalize(ciphertext);
   
-  // Short-circuit for empty normalized ciphertext
-  if (normalizedCipher === "") {
+  // Guard against empty normalized ciphertext
+  if (normalized.length === 0) {
     return {
-      key: { cipherAlphabet: ALPHA_UPPER },
+      key: { cipherAlphabet: alphabet },
       plaintext: ciphertext,
     };
   }
 
-  // Guard against empty normalized ciphertext and clamp n to 1..4 range
-  const scorer = getScorer(Math.max(1, Math.min(4, normalizedCipher.length)));
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
-  let bestAlphabet = ALPHA_UPPER;
+  let bestAlphabet = alphabet;
   let bestOverallScore = -Infinity;
 
   const shuffle = (str: string, random: () => number) => {
@@ -51,11 +50,7 @@ export function crack(
     for (let i = arr.length - 1; i > 0; i--) {
       const val = getSafeRandom(random);
       const j = Math.floor(val * (i + 1));
-      
-      // Defensive check for j index
-      if (Number.isInteger(j) && j >= 0 && j <= i) {
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr.join('');
   };
@@ -68,36 +63,27 @@ export function crack(
       if (pos === -1) {
         result += char;
       } else {
-        result += ALPHA_UPPER[pos];
+        result += alphabet[pos];
       }
     }
     return result;
   };
 
   for (let r = 0; r < restarts; r++) {
-    let currentAlphabet = shuffle(ALPHA_UPPER, rng);
+    let currentAlphabet = shuffle(alphabet, rng);
     const alphabetArr = currentAlphabet.split('');
-    let currentDecrypted = decryptFast(normalizedCipher, currentAlphabet);
-    let currentScore = scorer.score(currentDecrypted);
+    let currentScore = scorer.score(decryptFast(normalized, currentAlphabet));
 
     for (let i = 0; i < iterations; i++) {
-      const valA = getSafeRandom(rng);
-      const a = Math.floor(valA * 26);
-      
-      const valB = getSafeRandom(rng);
-      let b = Math.floor(valB * 26);
-      
-      // Ensure a !== b
-      if (a === b) {
-        b = (a + 1) % 26;
-      }
+      const a = Math.floor(getSafeRandom(rng) * 26);
+      let b = Math.floor(getSafeRandom(rng) * 26);
+      if (a === b) b = (a + 1) % 26;
 
-      // Perform in-place swap to reduce allocations as requested
+      // Swap in place
       [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
       const nextAlphabet = alphabetArr.join('');
       
-      const nextDecrypted = decryptFast(normalizedCipher, nextAlphabet);
-      const nextScore = scorer.score(nextDecrypted);
+      const nextScore = scorer.score(decryptFast(normalized, nextAlphabet));
 
       if (nextScore > currentScore) {
         currentScore = nextScore;
@@ -114,10 +100,8 @@ export function crack(
     }
   }
 
-  // Use the library's decrypt for the final result to preserve formatting
-  const finalDecrypt = decrypt({ cipherAlphabet: bestAlphabet });
   return {
     key: { cipherAlphabet: bestAlphabet },
-    plaintext: finalDecrypt(ciphertext),
+    plaintext: decrypt({ cipherAlphabet: bestAlphabet })(ciphertext),
   };
 }

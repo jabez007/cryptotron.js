@@ -1,5 +1,6 @@
 import { decrypt } from './decrypt.ts';
 import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
+import { CrackResult } from '@/types.ts';
 
 /**
  * Cracks the Autokey cipher.
@@ -10,15 +11,24 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  * 
  * @param {string} ciphertext - The text to crack
  * @param {number} maxPrimerLength - Maximum primer length to test (default 15)
- * @returns {Object} The recovered key (primer) and decrypted plaintext
+ * @returns {CrackResult<{ primer: string }>} The recovered key (primer) and decrypted plaintext
  */
-export function crack(ciphertext: string, maxPrimerLength: number = 15) {
-  // Validate maxPrimerLength as requested
+export function crack(ciphertext: string, maxPrimerLength: number = 15): CrackResult<{ primer: string }> {
+  // Validate maxPrimerLength
   if (!Number.isFinite(maxPrimerLength) || !Number.isInteger(maxPrimerLength) || maxPrimerLength <= 0) {
     throw new TypeError(`Invalid maxPrimerLength: ${maxPrimerLength}. Expected a positive integer.`);
   }
 
   const normalized = normalize(ciphertext);
+  
+  // Guard against empty normalized ciphertext
+  if (normalized.length === 0) {
+    return {
+      key: { primer: 'A' },
+      plaintext: ciphertext,
+    };
+  }
+
   // Use adaptive scorer
   const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
@@ -27,7 +37,7 @@ export function crack(ciphertext: string, maxPrimerLength: number = 15) {
 
   // We'll test all primer lengths up to maxPrimerLength.
   for (let plen = 1; plen <= maxPrimerLength; plen++) {
-    let currentPrimer = '';
+    let currentPrimerArr = new Array(plen).fill('A');
     
     // 1. Initial guess using independent column frequency analysis (monograms)
     for (let i = 0; i < plen; i++) {
@@ -50,8 +60,10 @@ export function crack(ciphertext: string, maxPrimerLength: number = 15) {
           bestChar = String.fromCharCode(shift + 65);
         }
       }
-      currentPrimer += bestChar;
+      currentPrimerArr[i] = bestChar;
     }
+
+    let currentPrimer = currentPrimerArr.join('');
 
     // 2. Hill-climbing refinement of the primer using Quadgram scoring on the full message
     let improved = true;

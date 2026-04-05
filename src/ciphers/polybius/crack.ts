@@ -1,5 +1,6 @@
 import { getScorer, getSafeRandom } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
+import { CrackResult } from '@/types.ts';
 
 /**
  * Detects the most likely characters used as coordinates in a Polybius Square ciphertext.
@@ -63,13 +64,9 @@ function detectCipherChars(ciphertext: string): string {
  * 
  * @param {string} ciphertext - The text to crack
  * @param {Function} [rng] - Optional random number generator (default Math.random)
- * @returns {Object} The recovered key (grid as keyword) and decrypted plaintext
+ * @returns {CrackResult<{ keyword: string; cipherChars: string }>} The recovered key (grid as keyword) and decrypted plaintext
  */
-export function crack(ciphertext: string, rng: () => number = Math.random) {
-  if (typeof ciphertext !== 'string') {
-    throw new TypeError(`Expected ciphertext to be a string, received ${typeof ciphertext}`);
-  }
-
+export function crack(ciphertext: string, rng: () => number = Math.random): CrackResult<{ keyword: string; cipherChars: string }> {
   const detectedChars = detectCipherChars(ciphertext);
   const charSet = new Set(detectedChars.split(''));
 

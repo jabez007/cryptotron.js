@@ -1,45 +1,35 @@
-import { alphaLower, getUniqueCharacters, transform } from '@utils';
+import { getCharOffset, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
- * Encrypts text using the Simple Substitution cipher - a cipher that replaces each letter with a secret substitute.
+ * Encrypts a message using the Simple Substitution cipher.
  *
- * How it works (simple version):
- * 1. Create a secret alphabet where each letter is swapped with another
- *    - Example: A→X, B→M, C→Q,... (your cipher alphabet)
- * 2. For each letter in your message:
- *    - Find its position in the normal alphabet
- *    - Replace it with the letter at that same position in your secret alphabet
- * 3. Upper/lower case is preserved in the ciphertext
+ * This cipher replaces each letter of the alphabet with another letter
+ * based on a fixed key (a "cipher alphabet").
  *
- * @param {Object} key - The encryption key
- * @param {string} key.cipherAlphabet - 26 unique letters for substitution (can include unused letters)
- * @returns {Function} A function that takes plaintext and returns ciphertext
- * @throws {Error} If the cipher alphabet doesn't contain at least 26 unique characters
- * @example
- * // Using a scrambled alphabet:
- * const encryptMessage = encrypt({ cipherAlphabet: "XMQKGBDFYHOWITJVZCRNUALSEP" });
- * encryptMessage("Hello World"); // Might return "Kbggv Jvrkg"
+ * Example:
+ *   Normal: "ABC..."
+ *   Cipher: "QWE..." (the key)
+ *   'A' becomes 'Q', 'B' becomes 'W', etc.
+ *
+ * @param {Object} key - The encryption key.
+ * @param {string} key.cipherAlphabet - A 26-character string representing the shuffled alphabet.
+ * @returns {CipherTransformer} A function that transforms a plaintext message into its encrypted form.
+ * @throws {Error} If `cipherAlphabet` is not exactly 26 characters long.
  */
-export function encrypt(key: { cipherAlphabet: string }) {
-  const plainAlphabet = alphaLower;
-
-  const cipherAlphabet = getUniqueCharacters(
-    `${key.cipherAlphabet.toLowerCase()}${plainAlphabet}`,
-  );
-
-  if (cipherAlphabet.length < 26) {
-    throw new Error(
-      `Cipher alphabet must contain at least 26 unique characters. Received ${cipherAlphabet.length} unique characters from '${key.cipherAlphabet}'`,
-    );
+export function encrypt(key: { cipherAlphabet: string }): CipherTransformer {
+  const { cipherAlphabet } = key;
+  if (new Set(cipherAlphabet.toUpperCase()).size !== 26) {
+    throw new Error('Cipher alphabet must be exactly 26 unique characters');
   }
 
+  const upperKey = cipherAlphabet.toUpperCase();
+
   return transform((char) => {
-    const pos = plainAlphabet.indexOf(char.toLowerCase());
+    const offset = getCharOffset(char);
+    const index = char.toUpperCase().charCodeAt(0) - 65;
+    const result = upperKey.charAt(index);
 
-    if (char.toUpperCase() === char) {
-      return cipherAlphabet[pos].toUpperCase();
-    }
-
-    return cipherAlphabet[pos];
+    return offset === 65 ? result : result.toLowerCase();
   });
 }

@@ -1,4 +1,5 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
  * Decrypts a message encrypted with the Autokey cipher.
@@ -25,9 +26,9 @@ import { getCharOffset, modulo, transform } from '@utils';
  *
  * @param {Object} key - The decryption key containing the primer.
  * @param {string} key.primer - The initial secret word that starts the key.
- * @returns {Function} A function that transforms a ciphertext message into its original form.
+ * @returns {CipherTransformer} A function that transforms a ciphertext message into its original form.
  */
-export function decrypt(key: { primer: string }) {
+export function decrypt(key: { primer: string }): CipherTransformer {
   return (cipherText: string): string => {
     let autokey = key.primer.replace(/[^A-Za-z]/g, '');
 

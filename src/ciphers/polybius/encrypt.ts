@@ -1,63 +1,48 @@
 import { buildCipherSquare, transform } from '@utils';
+import type { CipherTransformer } from '@/types.ts';
 
 /**
- * Encrypts text using the Polybius Square cipher - an ancient Greek cipher that turns letters into numbers.
+ * Encrypts a message using the Polybius Square cipher.
  *
- * How it works (simple version):
- * 1. Create a 5x5 grid filled with letters (I and J share a space)
- * 2. The grid is scrambled using a secret keyword
- * 3. For each letter:
- *    - Find its row and column in the grid
- *    - Replace it with two cipher characters (like numbers or symbols)
- *    - Example: 'A' might become "23" if it's in row 2, column 3
- * 4. Letters not in the grid (like numbers) stay the same
+ * The Polybius Square is a technique that represents each letter of
+ * the alphabet with its coordinates in a 5x5 grid (square).
  *
- * @param {Object} key - The encryption key
- * @param {string} key.keyword - Secret word to scramble the letter grid (can also be a full 25-char grid)
- * @param {string} key.cipherChars - Exactly 5 characters used to represent rows/columns (e.g., "12345")
- * @returns {Function} A function that takes text and returns encrypted pairs
- * @throws {Error} If cipherChars doesn't have exactly 5 characters
- * @example
- * // Spy message using symbols as codes:
- * const encryptMessage = encrypt({ keyword: "SECRET", cipherChars: "!@#$%" });
- * encryptMessage("HELLO"); // Might return "@!$#$@%$"
+ * Example (using "ABCDE" as cipherChars):
+ *    A B C D E
+ *  A a b c d e
+ *  B f g h i k
+ *  C l m n o p
+ *  ...
+ *  'a' (row 1, col 1) → "AA"
+ *  'h' (row 2, col 3) → "BC"
+ *
+ * Note: 'j' is typically merged with 'i' to fit in the 5x5 grid.
+ *
+ * @param {Object} key - The encryption key.
+ * @param {string} key.keyword - The secret word used to shuffle the square.
+ * @param {string} key.cipherChars - Exactly 5 unique characters used as coordinates (e.g., "12345" or "ABCDE").
+ * @returns {CipherTransformer} A function that transforms a plaintext message into its Polybius coordinates.
+ * @throws {Error} If `cipherChars` does not contain exactly 5 unique characters.
  */
-export function encrypt(key: { keyword: string; cipherChars: string }) {
-  if (key.cipherChars.length !== 5) {
-    throw new Error(
-      `There must be exactly 5 cipher characters. Received '${key.cipherChars}' for cipher characters`,
-    );
+export function encrypt(key: { keyword: string; cipherChars: string }): CipherTransformer {
+  const { keyword, cipherChars } = key;
+  if (cipherChars.length !== 5 || new Set(cipherChars).size !== 5) {
+    throw new Error('cipherChars must be exactly 5 unique characters');
   }
 
-  // Honor raw grid if exactly 25 characters and contains no 'j'
-  const keySquare = (key.keyword.length === 25 && !key.keyword.toLowerCase().includes('j'))
-    ? (function() {
-        const grid = key.keyword.toLowerCase();
-        const sq = new Array(5).fill(null).map(() => new Array(5).fill(null));
-        for (let i = 0; i < 25; i++) {
-          sq[Math.floor(i / 5)][i % 5] = grid[i];
+  const cipherSquare = buildCipherSquare(keyword);
+
+  return transform((char) => {
+    let _char = char.toLowerCase();
+    if (_char === 'j') _char = 'i';
+
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        if (cipherSquare[r][c] === _char) {
+          return `${cipherChars.charAt(r)}${cipherChars.charAt(c)}`;
         }
-        return sq;
-      })()
-    : buildCipherSquare(key.keyword);
-
-  return (plainText: string) => {
-    const plaintext = plainText.toLowerCase().replace(/[j]/g, 'i');
-
-    return transform((char) => {
-      const row = keySquare.findIndex((r) => r.includes(char));
-      
-      if (row === -1) {
-        throw new Error(`Character '${char}' not found in cipher square`);
       }
-      
-      const column = keySquare[row].findIndex((c) => c === char);
-      
-      if (column === -1) {
-        throw new Error(`Character '${char}' not found in row ${row} of cipher square`);
-      }
-      
-      return `${key.cipherChars.charAt(row)}${key.cipherChars.charAt(column)}`;
-    })(plaintext);
-  };
+    }
+    throw new Error(`Character '${char}' (normalized as '${_char}') not found in cipherSquare`);
+  });
 }

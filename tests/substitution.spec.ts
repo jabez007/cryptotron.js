@@ -15,11 +15,29 @@ describe('Substitution', function () {
     it('should return encrypted message', function () {
       assert.strictEqual(encrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Hello World"), "Itssg Vgksr");
     });
+
+    it('should throw error for non-unique cipherAlphabet', function () {
+      assert.throws(() => encrypt({cipherAlphabet: 'aaertyuiopasdfghjklzxcvbnm'}), /Cipher alphabet must be exactly 26 unique characters/);
+    });
+
+    it('should throw error for cipherAlphabet with length !== 26', function () {
+      assert.throws(() => encrypt({cipherAlphabet: 'qwerty'}), /Cipher alphabet must be exactly 26 unique characters/);
+      assert.throws(() => encrypt({cipherAlphabet: 'abcdefghijklmnopqrstuvwxyz1'}), /Cipher alphabet must be exactly 26 unique characters/);
+    });
   });
 
   describe('#decrypt', function () {
     it('should return decrypted message', function () {
       assert.strictEqual(decrypt({cipherAlphabet: 'qwertyuiopasdfghjklzxcvbnm'})("Itssg Vgksr"), "Hello World");
+    });
+
+    it('should throw error for non-unique cipherAlphabet', function () {
+      assert.throws(() => decrypt({cipherAlphabet: 'aaertyuiopasdfghjklzxcvbnm'}), /Cipher alphabet must be exactly 26 unique characters/);
+    });
+
+    it('should throw error for cipherAlphabet with length !== 26', function () {
+      assert.throws(() => decrypt({cipherAlphabet: 'qwerty'}), /Cipher alphabet must be exactly 26 unique characters/);
+      assert.throws(() => decrypt({cipherAlphabet: 'abcdefghijklmnopqrstuvwxyz1'}), /Cipher alphabet must be exactly 26 unique characters/);
     });
   });
 

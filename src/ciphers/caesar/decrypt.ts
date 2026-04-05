@@ -1,32 +1,29 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
- * Decrypts text using the Caesar cipher - works like reverse encryption.
+ * Decrypts a message using the Caesar cipher.
  *
- * How it works (simple version):
- * 1. Use the same secret number (shift) used to encrypt
- * 2. For each letter: move backward in alphabet by that shift
- *    - D → A (shift 3), E → B, ..., A → X (wraps around), B → Y, C → Z
- * 3. Non-letters stay the same
+ * Decryption involves shifting the letters in the reverse direction.
  *
- * @param {Object} key - The decryption key
- * @param {number} key.shift - Same number used to encrypt (must be whole number)
- * @returns {Function} A function that takes encrypted text and returns original
- * @throws {Error} If shift isn't an integer
- * @example
- * // Decoding a secret message:
- * const readSecret = decrypt({ shift: 3 });
- * readSecret("DWWDFN DW GDZQ"); // "ATTACK AT DAWN"
+ * Example:
+ *   If the message was shifted by 3 ('A' → 'D'), decrypting it requires
+ *   shifting back by 3 ('D' → 'A').
+ *
+ * @param {Object} key - The decryption key containing the shift value.
+ * @param {number} key.shift - The number of positions to shift each letter back.
+ * @returns {CipherTransformer} A function that transforms an encrypted message back into its original form.
+ * @throws {Error} If `shift` is not an integer.
  */
-export function decrypt(key: { shift: number }) {
+export function decrypt(key: { shift: number }): CipherTransformer {
   if (!Number.isInteger(key.shift)) {
-    throw new Error('Shift key value must be an integer');
+    throw new Error('Key value must be an integer');
   }
 
-  return transform((char, index, cipher) => {
+  return transform((char) => {
     const offset = getCharOffset(char);
     return String.fromCharCode(
-      modulo((cipher.charCodeAt(index) - offset) - key.shift, 26) + offset,
+      modulo(char.charCodeAt(0) - offset - key.shift, 26) + offset,
     );
   });
 }

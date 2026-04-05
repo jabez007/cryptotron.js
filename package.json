@@ -1,8 +1,9 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "type": "module",
   "main": "./dist/cjs/index.js",
@@ -24,11 +25,30 @@
     "encryption",
     "decryption",
     "typescript",
-    "classical-ciphers"
+    "classical-ciphers",
+    "caesar",
+    "vigenere",
+    "affine",
+    "polybius",
+    "substitution",
+    "autokey",
+    "beaufort",
+    "running-key",
+    "cryptanalysis",
+    "frequency-analysis",
+    "cracking",
+    "security",
+    "educational",
+    "deno",
+    "node",
+    "esm"
   ],
   "author": "jabez007",
   "license": "GPLv3",
   "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.24",

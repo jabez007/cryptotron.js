@@ -1,5 +1,6 @@
 import { decrypt } from './decrypt.ts';
 import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
+import { CrackResult } from '@/types.ts';
 
 const VALID_A = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
 
@@ -10,9 +11,9 @@ const VALID_A = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
  * and returns the one with the highest score.
  * 
  * @param {string} ciphertext - The text to crack
- * @returns {Object} The recovered key (alpha and beta) and decrypted plaintext
+ * @returns {CrackResult<{ alpha: number, beta: number }>} The recovered key (alpha and beta) and decrypted plaintext
  */
-export function crack(ciphertext: string) {
+export function crack(ciphertext: string): CrackResult<{ alpha: number; beta: number }> {
   const normalized = normalize(ciphertext);
   
   // Guard against empty normalized ciphertext

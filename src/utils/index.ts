@@ -1,4 +1,6 @@
-export function getCharOffset(val: string) {
+import type { CipherTransformer } from '../types.ts';
+
+export function getCharOffset(val: string): number {
   if (val.length !== 1) {
     throw new Error('Length of input value must be 1');
   }
@@ -22,7 +24,7 @@ export function transform(
     inputIndex: number,
     inputText: string,
   ) => string,
-) {
+): CipherTransformer {
   return (inputText: string): string => {
     let outputText = '';
     for (let i = 0; i < inputText.length; i += 1) {
@@ -62,7 +64,7 @@ export const alphaLower = [...Array(26)]
   .map((_, i) => String.fromCharCode(97 + i))
   .join('');
 
-export function getUniqueCharacters(input: string) {
+export function getUniqueCharacters(input: string): string {
   let unique = '';
   for (let i = 0; i < input.length; i += 1) {
     if (!unique.includes(input[i])) {
@@ -78,13 +80,18 @@ export function getUniqueCharacters(input: string) {
  * @param {string} keyword - A secret word or a full 25-character alphabet (excluding 'j')
  * @returns {string[][]} A 5x5 grid of characters
  */
-export function buildCipherSquare(keyword: string) {
-  const key = getUniqueCharacters(`${keyword.toLowerCase()}${alphaLower}`)
-    .replace(/[j]/g, '');
+export function buildCipherSquare(keyword: string): string[][] {
+  const normalizedKeyword = keyword.toLowerCase().replace(/j/g, 'i').replace(/[^a-z]/g, '');
+  const key = getUniqueCharacters(`${normalizedKeyword}${alphaLower.replace(/j/g, '')}`);
+
+  if (key.length !== 25) {
+    throw new Error(`Could not build a valid 5x5 cipher square from keyword: "${keyword}". Expected 25 unique symbols.`);
+  }
+
   const cipherSquare = new Array(5)
     .fill(null)
     .map(() => new Array(5).fill(null));
-  for (let i = 0; i < key.length; i += 1) {
+  for (let i = 0; i < 25; i += 1) {
     const char = key.charAt(i);
     const column = i % 5;
     const row = Math.floor(i / 5);
