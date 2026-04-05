@@ -22,6 +22,7 @@ describe('Polybius Square', function () {
 
     it('should throw error for cipherChars with length !== 5', function () {
       assert.throws(() => encrypt({keyword: 'foobar', cipherChars: '1234'}), /cipherChars must be exactly 5 unique characters/);
+      assert.throws(() => encrypt({keyword: 'foobar', cipherChars: '112345'}), /cipherChars must be exactly 5 unique characters/);
     });
   });
 
@@ -41,6 +42,7 @@ describe('Polybius Square', function () {
 
     it('should throw error for cipherChars with length !== 5', function () {
       assert.throws(() => decrypt({keyword: 'foobar', cipherChars: '1234'}), /cipherChars must be exactly 5 unique characters/);
+      assert.throws(() => decrypt({keyword: 'foobar', cipherChars: '112345'}), /cipherChars must be exactly 5 unique characters/);
     });
   });
 
