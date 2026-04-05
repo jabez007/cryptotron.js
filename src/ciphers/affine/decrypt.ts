@@ -1,4 +1,5 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
  * Finds the modular multiplicative inverse of a given number within the range of 1 to 25 (since we're working with modulo 26).
@@ -45,10 +46,10 @@ function findInverse(a: number): number {
  * @param {Object} key - The decryption key containing alpha and beta values.
  * @param {number} key.alpha - Must be an integer, originally used in encryption.
  * @param {number} key.beta - Must be an integer, originally added during encryption.
- * @returns {Function} A function that transforms a ciphertext message into its original form.
+ * @returns {CipherTransformer} A function that transforms a ciphertext message into its original form.
  * @throws {Error} If `alpha` or `beta` are not integers or if no inverse exists for `alpha`.
  */
-export function decrypt(key: { alpha: number; beta: number }) {
+export function decrypt(key: { alpha: number; beta: number }): CipherTransformer {
   if (!(Number.isInteger(key.alpha) && Number.isInteger(key.beta))) {
     throw new Error('Both key values must be integers');
   }

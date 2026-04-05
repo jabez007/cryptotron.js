@@ -1,52 +1,46 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
- * Encrypts text using the Running Key cipher - a clever cipher that uses an entire text as a key.
+ * Encrypts a message using the Running Key cipher.
  *
- * How it works (simple version):
- * 1. Choose a long key text (like a book page or newspaper article)
- * 2. Line up your message with the beginning of the key text
- * 3. For each letter:
- *    - Move forward in the alphabet by the position of the key letter
- *    - Example: Message 'H' + Key 'E' (5th letter) → 'L'
- * 4. The key must be at least as long as your message!
+ * The Running Key cipher is similar to the Vigenère cipher but uses a
+ * very long key from a book or other source, ideally as long as the
+ * message itself.
  *
- * @param {Object} key - The encryption key
- * @param {string} key.keyText - The text used as the key (only letters are used)
- * @returns {Function} A function that takes plaintext and returns ciphertext
- * @throws {Error} If the usable key text is shorter than the message
- * @example
- * // Using a book excerpt as key:
- * const encryptMessage = encrypt({ keyText: "Call me Ishmael..." });
- * encryptMessage("HELLO"); // Might return "JMPPT" (depends on key)
+ * Example:
+ *   Plaintext: "ATTACKATDAWN"
+ *   Running Key: "THEBOOKOFTH..." (from a book)
+ *   Encryption: Add the letters together mod 26.
+ *
+ * @param {Object} key - The encryption key.
+ * @param {string} key.keyText - A long string of text used as the key.
+ * @returns {CipherTransformer} A function that transforms a plaintext message into its encrypted form.
+ * @throws {Error} If `keyText` contains no alphabetic characters.
  */
-export function encrypt(key: { keyText: string }) {
-  const cleanedKeyText = key.keyText.replace(/[^A-Za-z]/g, '');
+export function encrypt(key: { keyText: string }): CipherTransformer {
+  const cleanedKey = key.keyText.replace(/[^A-Za-z]/g, '');
+  if (cleanedKey.length === 0) {
+    throw new Error('Key text must contain at least one alphabetic character');
+  }
 
-  return (plainText: string) => {
-    const cleanedPlainText = plainText.replace(/[^A-Za-z]/g, '');
-    if (cleanedPlainText.length > cleanedKeyText.length) {
-      throw new Error(
-        `Usable key text must be at least as long as encryptable plain text. Usable key was ${cleanedKeyText.length} characters long while encryptable plain text was ${cleanedPlainText.length} characters long`,
-      );
-    }
+  let j = 0;
 
-    let j = 0;
+  return transform((char) => {
+    const _j = j % cleanedKey.length;
 
-    return transform((char, index, plain) => {
-      const offset = getCharOffset(char);
-      const keyOffset = getCharOffset(cleanedKeyText.charAt(j));
+    const offset = getCharOffset(char);
+    const keyOffset = getCharOffset(cleanedKey.charAt(_j));
 
-      const result = String.fromCharCode(
-        modulo(
-          (plain.charCodeAt(index) - offset) +
-            (cleanedKeyText.charCodeAt(j) - keyOffset),
-          26,
-        ) + offset,
-      );
-      j += 1;
+    const result = String.fromCharCode(
+      modulo(
+        (char.charCodeAt(0) - offset) +
+          (cleanedKey.charCodeAt(_j) - keyOffset),
+        26,
+      ) + offset,
+    );
+    j += 1;
 
-      return result;
-    })(plainText);
-  };
+    return result;
+  });
 }

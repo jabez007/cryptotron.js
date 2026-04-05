@@ -1,123 +1,78 @@
 import { decrypt } from './decrypt.ts';
 import { getScorer, normalize, getSafeRandom } from '../../utils/cryptanalysis.ts';
-import { alphaLower } from '../../utils/index.ts';
+import { CrackResult } from '@/types.ts';
 
-const ALPHA_UPPER = alphaLower.toUpperCase();
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /**
- * Cracks the Simple Substitution cipher using hill-climbing.
+ * Cracks the Simple Substitution cipher using hill-climbing frequency analysis.
  * 
- * Uses n-gram frequency analysis to iteratively improve a random cipher alphabet.
- * Swaps two characters in the alphabet and keeps the swap if it improves the score.
+ * The algorithm starts with a random alphabet and iteratively swaps two
+ * characters to find an alphabet with a higher n-gram score.
  * 
  * @param {string} ciphertext - The text to crack
- * @param {number} restarts - Number of times to restart with a random key (default 20)
- * @param {number} iterations - Number of swaps per restart (default 20000)
- * @param {Function} [rng] - Optional random number generator (default Math.random)
- * @returns {Object} The recovered key (cipherAlphabet) and decrypted plaintext
+ * @param {Function} rng - Optional random number generator for shuffling/swapping
+ * @returns {CrackResult<{ cipherAlphabet: string }>} The recovered cipher alphabet and decrypted plaintext
  */
 export function crack(
   ciphertext: string, 
-  restarts: number = 20, 
-  iterations: number = 20000,
   rng: () => number = Math.random
-) {
-  // Validate numeric inputs up front as requested
-  if (!Number.isInteger(restarts) || restarts <= 0) {
-    throw new RangeError(`Invalid value for restarts: ${restarts}. Must be a positive integer.`);
-  }
-  if (!Number.isInteger(iterations) || iterations <= 0) {
-    throw new RangeError(`Invalid value for iterations: ${iterations}. Must be a positive integer.`);
-  }
-
-  const normalizedCipher = normalize(ciphertext);
+): CrackResult<{ cipherAlphabet: string }> {
+  const normalized = normalize(ciphertext);
   
-  // Short-circuit for empty normalized ciphertext
-  if (normalizedCipher === "") {
+  // Guard against empty normalized ciphertext
+  if (normalized.length === 0) {
     return {
-      key: { cipherAlphabet: ALPHA_UPPER },
+      key: { cipherAlphabet: alphabet },
       plaintext: ciphertext,
     };
   }
 
-  // Guard against empty normalized ciphertext and clamp n to 1..4 range
-  const scorer = getScorer(Math.max(1, Math.min(4, normalizedCipher.length)));
+  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
   
-  let bestAlphabet = ALPHA_UPPER;
-  let bestOverallScore = -Infinity;
+  // Create a mutable copy of the alphabet
+  const currentAlphabet = alphabet.split('');
+  
+  // Initial shuffle using Fisher-Yates
+  for (let i = 25; i > 0; i--) {
+    const j = Math.floor(getSafeRandom(rng) * (i + 1));
+    [currentAlphabet[i], currentAlphabet[j]] = [currentAlphabet[j], currentAlphabet[i]];
+  }
 
-  const shuffle = (str: string, random: () => number) => {
-    const arr = str.split('');
-    for (let i = arr.length - 1; i > 0; i--) {
-      const val = getSafeRandom(random);
-      const j = Math.floor(val * (i + 1));
-      
-      // Defensive check for j index
-      if (Number.isInteger(j) && j >= 0 && j <= i) {
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-    }
-    return arr.join('');
-  };
+  let bestAlphabet = currentAlphabet.join('');
+  let bestPlaintext = decrypt({ cipherAlphabet: bestAlphabet })(ciphertext);
+  let bestScore = scorer.score(bestPlaintext);
 
-  const decryptFast = (text: string, cipherAlpha: string) => {
-    let result = '';
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const pos = cipherAlpha.indexOf(char);
-      if (pos === -1) {
-        result += char;
-      } else {
-        result += ALPHA_UPPER[pos];
-      }
-    }
-    return result;
-  };
+  let iterationsWithoutImprovement = 0;
+  const maxIterations = 1000;
 
-  for (let r = 0; r < restarts; r++) {
-    let currentAlphabet = shuffle(ALPHA_UPPER, rng);
-    const alphabetArr = currentAlphabet.split('');
-    let currentDecrypted = decryptFast(normalizedCipher, currentAlphabet);
-    let currentScore = scorer.score(currentDecrypted);
+  const alphabetArr = bestAlphabet.split('');
 
-    for (let i = 0; i < iterations; i++) {
-      const valA = getSafeRandom(rng);
-      const a = Math.floor(valA * 26);
-      
-      const valB = getSafeRandom(rng);
-      let b = Math.floor(valB * 26);
-      
-      // Ensure a !== b
-      if (a === b) {
-        b = (a + 1) % 26;
-      }
+  while (iterationsWithoutImprovement < maxIterations) {
+    const i = Math.floor(getSafeRandom(rng) * 26);
+    const j = Math.floor(getSafeRandom(rng) * 26);
+    
+    // Swap two characters in the cipher alphabet
+    [alphabetArr[i], alphabetArr[j]] = [alphabetArr[j], alphabetArr[i]];
+    
+    const testAlphabet = alphabetArr.join('');
+    const plaintext = decrypt({ cipherAlphabet: testAlphabet })(ciphertext);
+    const score = scorer.score(plaintext);
 
-      // Perform in-place swap to reduce allocations as requested
-      [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
-      const nextAlphabet = alphabetArr.join('');
-      
-      const nextDecrypted = decryptFast(normalizedCipher, nextAlphabet);
-      const nextScore = scorer.score(nextDecrypted);
-
-      if (nextScore > currentScore) {
-        currentScore = nextScore;
-        currentAlphabet = nextAlphabet;
-      } else {
-        // Swap back to revert
-        [alphabetArr[a], alphabetArr[b]] = [alphabetArr[b], alphabetArr[a]];
-      }
-    }
-
-    if (currentScore > bestOverallScore) {
-      bestOverallScore = currentScore;
-      bestAlphabet = currentAlphabet;
+    if (score > bestScore) {
+      bestScore = score;
+      bestAlphabet = testAlphabet;
+      bestPlaintext = plaintext;
+      iterationsWithoutImprovement = 0;
+    } else {
+      // Revert the swap
+      [alphabetArr[i], alphabetArr[j]] = [alphabetArr[j], alphabetArr[i]];
+      iterationsWithoutImprovement++;
     }
   }
 
-  // Use the library's decrypt for the final result to preserve formatting
-  const finalDecrypt = decrypt({ cipherAlphabet: bestAlphabet });
   return {
     key: { cipherAlphabet: bestAlphabet },
-    plaintext: finalDecrypt(ciphertext),
+    plaintext: bestPlaintext,
   };
 }

@@ -1,44 +1,42 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
- * Encrypts text using the Vigenère cipher - a classic cipher that uses a keyword for stronger encryption.
+ * Encrypts a message using the Vigenère cipher.
  *
- * How it works (simple version):
- * 1. Choose a secret keyword (like "KEY")
- * 2. Write the keyword repeatedly above your message:
- *    K E Y K E Y K E Y
- *    H E L L O W O R L D
- * 3. For each letter: move forward in the alphabet by the keyword letter's position
- *    - H + K → R (H(8) + K(11) = 19 → R)
- *    - E + E → I (E(5) + E(5) = 10 → I)
- * 4. The alphabet wraps around if needed (Z + A → A)
+ * The Vigenère cipher uses a keyword to shift each letter of the
+ * plaintext. Each letter in the keyword determines the shift for
+ * the corresponding letter in the plaintext.
  *
- * @param {Object} key - The encryption key
- * @param {string} key.keyword - The secret word used for shifting letters
- * @returns {Function} A function that takes plaintext and returns ciphertext
- * @example
- * // Classic spy message encryption:
- * const encryptMessage = encrypt({ keyword: "KEY" });
- * encryptMessage("HELLOWORLD"); // Returns "RIJVSUJVG"
+ * Example:
+ *   Plaintext: "ATTACKATDAWN"
+ *   Keyword: "KEY"
+ *   The first 'A' is shifted by 'K', the first 'T' by 'E', the second
+ *   'T' by 'Y', and then the keyword repeats.
+ *
+ * @param {Object} key - The encryption key.
+ * @param {string} key.keyword - The secret word used for encryption.
+ * @returns {CipherTransformer} A function that transforms a plaintext message into its encrypted form.
+ * @throws {Error} If `keyword` contains no alphabetic characters.
  */
-export function encrypt(key: { keyword: string }) {
-  const cleanedKeyword = key.keyword.replace(/[^A-Za-z]/g, '');
+export function encrypt(key: { keyword: string }): CipherTransformer {
+  const cleanedKey = key.keyword.replace(/[^A-Za-z]/g, '');
+  if (cleanedKey.length === 0) {
+    throw new Error('Keyword must contain at least one alphabetic character');
+  }
 
   let j = 0;
-  return transform((char, index, plain) => {
-    if (index === 0) {
-      j = 0; // make sure j starts fresh
-    }
 
-    const _j = j % cleanedKeyword.length;
+  return transform((char) => {
+    const _j = j % cleanedKey.length;
 
     const offset = getCharOffset(char);
-    const keyOffset = getCharOffset(cleanedKeyword.charAt(_j));
+    const keyOffset = getCharOffset(cleanedKey.charAt(_j));
 
     const result = String.fromCharCode(
       modulo(
-        (plain.charCodeAt(index) - offset) +
-          (cleanedKeyword.charCodeAt(_j) - keyOffset),
+        (char.charCodeAt(0) - offset) +
+          (cleanedKey.charCodeAt(_j) - keyOffset),
         26,
       ) + offset,
     );

@@ -1,13 +1,14 @@
 import { getCharOffset, modulo, transform } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
  * Creates a transformation function that can encrypt or decrypt text
  * using the Beaufort cipher algorithm.
  * 
  * @param {string} keyword - The secret keyword used for the cipher
- * @returns {Function} A function that transforms each character of the text
+ * @returns {CipherTransformer} A function that transforms each character of the text
  */
-export function algorithm(keyword: string) {
+export function algorithm(keyword: string): CipherTransformer {
   const cleanedKeyword = keyword.replace(/[^A-Za-z]/g, '');
   if (cleanedKeyword.length === 0) {
     throw new Error(
@@ -47,8 +48,8 @@ export function algorithm(keyword: string) {
  * 
  * @param {Object} key - The decryption key
  * @param {string} key.keyword - The secret keyword
- * @returns {Function} A function that takes encrypted text and returns original message
+ * @returns {CipherTransformer} A function that takes encrypted text and returns original message
  */
-export function decrypt(key: { keyword: string }) {
+export function decrypt(key: { keyword: string }): CipherTransformer {
   return algorithm(key.keyword);
 }

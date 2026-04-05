@@ -1,3 +1,4 @@
+export * from './types.ts';
 export * as affine from './ciphers/affine/index.ts';
 export * as autokey from './ciphers/autokey/index.ts';
 export * as beaufort from './ciphers/beaufort/index.ts';

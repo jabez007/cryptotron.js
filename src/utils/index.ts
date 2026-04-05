@@ -1,4 +1,6 @@
-export function getCharOffset(val: string) {
+import { CipherTransformer } from '../types.ts';
+
+export function getCharOffset(val: string): number {
   if (val.length !== 1) {
     throw new Error('Length of input value must be 1');
   }
@@ -22,7 +24,7 @@ export function transform(
     inputIndex: number,
     inputText: string,
   ) => string,
-) {
+): CipherTransformer {
   return (inputText: string): string => {
     let outputText = '';
     for (let i = 0; i < inputText.length; i += 1) {
@@ -62,7 +64,7 @@ export const alphaLower = [...Array(26)]
   .map((_, i) => String.fromCharCode(97 + i))
   .join('');
 
-export function getUniqueCharacters(input: string) {
+export function getUniqueCharacters(input: string): string {
   let unique = '';
   for (let i = 0; i < input.length; i += 1) {
     if (!unique.includes(input[i])) {
@@ -78,7 +80,7 @@ export function getUniqueCharacters(input: string) {
  * @param {string} keyword - A secret word or a full 25-character alphabet (excluding 'j')
  * @returns {string[][]} A 5x5 grid of characters
  */
-export function buildCipherSquare(keyword: string) {
+export function buildCipherSquare(keyword: string): string[][] {
   const key = getUniqueCharacters(`${keyword.toLowerCase()}${alphaLower}`)
     .replace(/[j]/g, '');
   const cipherSquare = new Array(5)

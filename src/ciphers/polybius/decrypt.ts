@@ -1,83 +1,63 @@
 import { buildCipherSquare } from '@utils';
+import { CipherTransformer } from '@/types.ts';
 
 /**
- * Decrypts text using the Polybius Square cipher - turns code pairs back into letters.
+ * Decrypts a Polybius Square message back into plaintext.
  *
- * How it works (simple version):
- * 1. Create a 5x5 grid filled with letters (I and J share a space)
- * 2. The grid is scrambled using a secret keyword
- * 3. For each pair of cipher characters:
- *    - First character = row in the grid
- *    - Second character = column in the grid
- *    - Example: "23" becomes whatever letter is at row 2, column 3
- * 4. Characters not in cipherChars stay the same
+ * Each pair of characters in the ciphertext is treated as coordinates
+ * (row, column) in a 5x5 grid.
  *
- * @param {Object} key - The decryption key (must match encryption key)
- * @param {string} key.keyword - Same secret word used to encrypt (can also be a full 25-char grid)
- * @param {string} key.cipherChars - Same 5 characters used during encryption
- * @returns {Function} A function that takes encrypted pairs and returns original text
- * @throws {Error} If cipherChars doesn't have exactly 5 characters
- * @example
- * // Decoding a spy message:
- * const decryptMessage = decrypt({ keyword: "SECRET", cipherChars: "!@#$%" });
- * decryptMessage("@!$#$@%$"); // Returns "hello" (remember J becomes I)
+ * Example (using "12345" as cipherChars):
+ *    "11" (row 1, col 1) → 'a'
+ *    "23" (row 2, col 3) → 'h'
+ *
+ * @param {Object} key - The decryption key.
+ * @param {string} key.keyword - The secret word or full grid used for decryption.
+ * @param {string} key.cipherChars - Exactly 5 unique coordinate characters (must match encryption).
+ * @returns {CipherTransformer} A function that transforms Polybius coordinates into plaintext.
+ * @throws {Error} If `cipherChars` does not contain exactly 5 unique characters.
  */
-export function decrypt(key: { keyword: string; cipherChars: string }) {
-  if (key.cipherChars.length !== 5) {
-    throw new Error(
-      `There must be exactly 5 cipher character. Received '${key.cipherChars}' for cipher characters`,
-    );
+export function decrypt(key: { keyword: string; cipherChars: string }): CipherTransformer {
+  const { keyword, cipherChars } = key;
+  if (cipherChars.length !== 5) {
+    throw new Error('cipherChars must be exactly 5 characters long');
   }
 
-  // Honor raw grid if exactly 25 characters and contains no 'j'
-  const keySquare = (key.keyword.length === 25 && !key.keyword.toLowerCase().includes('j'))
-    ? (function() {
-        const grid = key.keyword.toLowerCase();
-        const sq = new Array(5).fill(null).map(() => new Array(5).fill(null));
-        for (let i = 0; i < 25; i++) {
-          sq[Math.floor(i / 5)][i % 5] = grid[i];
-        }
-        return sq;
-      })()
-    : buildCipherSquare(key.keyword);
+  const cipherSquare = buildCipherSquare(keyword);
 
   return (cipherText: string) => {
-    let plaintext = '';
+    let outputText = '';
     let i = 0;
     while (i < cipherText.length) {
-      if (
-        key.cipherChars.indexOf(String(cipherText.charAt(i))) !== -1
-      ) {
-        const row = key.cipherChars.indexOf(
-          String(cipherText.charAt(i)),
-        );
-        i += 1;
-        
-        // Check if there's a next character for the pair
-        if (i >= cipherText.length) {
-          // Incomplete pair - append the first character as is and break
-          plaintext += cipherText.charAt(i - 1);
-          break;
+      const char1 = cipherText.charAt(i);
+      const row = cipherChars.indexOf(char1);
+
+      if (row !== -1) {
+        // Found first coordinate, look for second
+        let j = i + 1;
+        while (j < cipherText.length) {
+          const char2 = cipherText.charAt(j);
+          const col = cipherChars.indexOf(char2);
+          if (col !== -1) {
+            // Found second coordinate
+            outputText += cipherSquare[row][col];
+            i = j + 1;
+            break;
+          }
+          // Non-coordinate character between pair, skip it
+          j++;
         }
-        
-        const column = key.cipherChars.indexOf(
-          String(cipherText.charAt(i)),
-        );
-        
-        // Check if the second character is also a valid cipher character
-        if (column === -1) {
-          // Second character is not a cipher character - treat first as standalone
-          plaintext += cipherText.charAt(i - 1);
-          i -= 1; // Back up to process the current character in next iteration
-        } else {
-          // Valid pair - decrypt normally
-          plaintext += keySquare[row][column];
+        if (j >= cipherText.length) {
+          // No second coordinate found, append first char as literal
+          outputText += char1;
+          i++;
         }
       } else {
-        plaintext += cipherText.charAt(i);
+        // Literal non-coordinate character
+        outputText += char1;
+        i++;
       }
-      i += 1;
     }
-    return plaintext;
+    return outputText;
   };
 }

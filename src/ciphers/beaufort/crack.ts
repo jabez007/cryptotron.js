@@ -1,5 +1,6 @@
 import { decrypt } from './decrypt.ts';
 import { baseCrack } from '../../utils/vigenere-base.ts';
+import { CrackResult } from '@/types.ts';
 
 /**
  * Cracks the Beaufort cipher.
@@ -9,9 +10,9 @@ import { baseCrack } from '../../utils/vigenere-base.ts';
  * 
  * @param {string} ciphertext - The text to crack
  * @param {number} maxKeyLength - Maximum key length to test (default 20)
- * @returns {Object} The recovered key (keyword) and decrypted plaintext
+ * @returns {CrackResult<{ keyword: string }>} The recovered key (keyword) and decrypted plaintext
  */
-export function crack(ciphertext: string, maxKeyLength: number = 20) {
+export function crack(ciphertext: string, maxKeyLength: number = 20): CrackResult<{ keyword: string }> {
   return baseCrack({
     ciphertext,
     maxKeyLength,
