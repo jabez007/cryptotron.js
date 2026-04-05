@@ -46,6 +46,9 @@
   "author": "jabez007",
   "license": "GPLv3",
   "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.24",
