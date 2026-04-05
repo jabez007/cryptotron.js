@@ -22,6 +22,7 @@ describe('Substitution', function () {
 
     it('should throw error for cipherAlphabet with length !== 26', function () {
       assert.throws(() => encrypt({cipherAlphabet: 'qwerty'}), /Cipher alphabet must be exactly 26 unique characters/);
+      assert.throws(() => encrypt({cipherAlphabet: 'abcdefghijklmnopqrstuvwxyz1'}), /Cipher alphabet must be exactly 26 unique characters/);
     });
   });
 
@@ -36,6 +37,7 @@ describe('Substitution', function () {
 
     it('should throw error for cipherAlphabet with length !== 26', function () {
       assert.throws(() => decrypt({cipherAlphabet: 'qwerty'}), /Cipher alphabet must be exactly 26 unique characters/);
+      assert.throws(() => decrypt({cipherAlphabet: 'abcdefghijklmnopqrstuvwxyz1'}), /Cipher alphabet must be exactly 26 unique characters/);
     });
   });
 

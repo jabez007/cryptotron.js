@@ -1,17 +1,25 @@
 import { buildCipherSquare } from '@utils';
 import { CipherTransformer } from '@/types.ts';
-
 /**
  * Decrypts a Polybius Square message back into plaintext.
  *
  * Each pair of characters in the ciphertext is treated as coordinates
  * (row, column) in a 5x5 grid.
  *
- * Example (using "12345" as cipherChars):
+ * The `decrypt` function parses `cipherText` using a separator-discarding algorithm:
+ * - Non-coordinate characters (not in `cipherChars`) found between the two digits of a pair are treated as separators and discarded (e.g., "1-1" becomes "a").
+ * - Non-coordinate characters found between complete pairs are preserved (e.g., "11-12" becomes "a-b").
+ *
+ * Warning: This can lead to silent data loss for malformed input. For example, "1x2" (if '1' and '2' are coordinates but 'x' is not) will decode as the single coordinate for '12'.
+ *
+ * Example (using "12345" as cipherChars and a standard square):
  *    "11" (row 1, col 1) → 'a'
  *    "23" (row 2, col 3) → 'h'
+ *    "1-1 1-2" → "a b"
+ *    "11-12" → "a-b"
  *
  * @param {Object} key - The decryption key.
+...
  * @param {string} key.keyword - The secret word or full grid used for decryption.
  * @param {string} key.cipherChars - Exactly 5 unique coordinate characters (must match encryption).
  * @returns {CipherTransformer} A function that transforms Polybius coordinates into plaintext.
