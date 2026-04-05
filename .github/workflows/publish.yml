@@ -19,12 +19,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Publish to NPM
-        run: npm publish
+        run: npm publish --provenance --access public
 
   publish_to_ghpr:
     runs-on: ubuntu-latest
