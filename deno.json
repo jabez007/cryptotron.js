@@ -1,6 +1,7 @@
 {
   "name": "@jabez007/cryptotron-js",
   "version": "0.2.1",
+  "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
   "exports": "./src/index.ts",
   "tasks": {
     "dev": "deno test --watch ./src/index.ts"
