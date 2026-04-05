@@ -13,7 +13,7 @@ import { buildCipherSquare } from '@utils';
  * 4. Characters not in cipherChars stay the same
  *
  * @param {Object} key - The decryption key (must match encryption key)
- * @param {string} key.keyword - Same secret word used to encrypt
+ * @param {string} key.keyword - Same secret word used to encrypt (can also be a full 25-char grid)
  * @param {string} key.cipherChars - Same 5 characters used during encryption
  * @returns {Function} A function that takes encrypted pairs and returns original text
  * @throws {Error} If cipherChars doesn't have exactly 5 characters
@@ -29,7 +29,17 @@ export function decrypt(key: { keyword: string; cipherChars: string }) {
     );
   }
 
-  const keySquare = buildCipherSquare(key.keyword);
+  // Honor raw grid if exactly 25 characters and contains no 'j'
+  const keySquare = (key.keyword.length === 25 && !key.keyword.toLowerCase().includes('j'))
+    ? (function() {
+        const grid = key.keyword.toLowerCase();
+        const sq = new Array(5).fill(null).map(() => new Array(5).fill(null));
+        for (let i = 0; i < 25; i++) {
+          sq[Math.floor(i / 5)][i % 5] = grid[i];
+        }
+        return sq;
+      })()
+    : buildCipherSquare(key.keyword);
 
   return (cipherText: string) => {
     let plaintext = '';

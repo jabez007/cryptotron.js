@@ -1,6 +1,6 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publishConfig": {
     "access": "public"
   },
@@ -8,8 +8,8 @@
   "main": "./dist/cjs/index.js",
   "scripts": {
     "test": "cross-env TSX_TSCONFIG_PATH='./tsconfig.test.json' mocha",
-    "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
+    "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json && node -e \"const fs = require('node:fs'); const p = 'dist/cjs/utils/cryptanalysis.js'; let c = fs.readFileSync(p, 'utf8'); c = c.replace(/import\\.meta\\.url/g, 'require(\\'node:url\\').pathToFileURL(__filename).href'); fs.writeFileSync(p, c);\" && node -e \"require('node:fs').cpSync('src/ngrams', 'dist/cjs/ngrams', {recursive:true})\"",
+    "build:esm": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json && node -e \"require('node:fs').cpSync('src/ngrams', 'dist/esm/ngrams', {recursive:true})\"",
     "build:types": "tsc -p tsconfig.types.json",
     "build": "npm run build:cjs && npm run build:esm",
     "prepublishOnly": "npm run build",
