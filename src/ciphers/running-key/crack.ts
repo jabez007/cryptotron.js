@@ -8,8 +8,12 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  * @param {number} alphabeticLength - The target length
  * @returns {string} The expanded key text
  * @throws {Error} If keyword is empty
+ * @throws {TypeError|RangeError} If alphabeticLength is invalid
  */
 function buildKeyText(keyword: string, alphabeticLength: number): string {
+  if (!Number.isInteger(alphabeticLength) || alphabeticLength < 0) {
+    throw new RangeError(`Invalid alphabeticLength: ${alphabeticLength}. Must be a non-negative integer.`);
+  }
   if (keyword.length === 0) {
     if (alphabeticLength === 0) return '';
     throw new Error('Keyword must be non-empty to expand to a non-zero length.');
@@ -37,7 +41,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
   // Early return for empty input
   if (normalized.length === 0) {
     return {
-      key: { keyText: '', type: 'repeating-key' },
+      key: { keyText: '', keyword: '', type: 'repeating-key' },
       plaintext: ciphertext,
     };
   }
