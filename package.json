@@ -1,6 +1,6 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publishConfig": {
     "access": "public",
     "provenance": true
@@ -44,7 +44,7 @@
     "esm"
   ],
   "author": "jabez007",
-  "license": "GPLv3",
+  "license": "GPL-3.0-only",
   "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
   "engines": {
     "node": ">=20"

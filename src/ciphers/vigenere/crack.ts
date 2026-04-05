@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { baseCrack } from '../../utils/vigenere-base.ts';
-import { CrackResult } from '@/types.ts';
+import { baseCrack } from '@utils';
+import type { CrackResult } from '@types';
 
 /**
  * Cracks the Vigenère cipher.

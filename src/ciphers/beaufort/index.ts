@@ -1,4 +1,4 @@
-import { CipherTransformer } from '@/types.ts';
+import type { CipherTransformer } from '@types';
 import { algorithm } from './decrypt.ts';
 
 export * from './crack.ts';

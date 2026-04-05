@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, normalize } from '@utils';
+import type { CrackResult } from '@types';
 
 /**
  * Cracks the Caesar cipher by brute-forcing all 26 possible shifts.

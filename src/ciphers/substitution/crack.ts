@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, getSafeRandom } from '../../utils/cryptanalysis.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, normalize, getSafeRandom } from '@utils';
+import type { CrackResult } from '@types';
 
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 

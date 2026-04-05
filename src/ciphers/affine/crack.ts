@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize } from '../../utils/cryptanalysis.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, normalize } from '@utils';
+import type { CrackResult } from '@types';
 
 const VALID_A = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
 

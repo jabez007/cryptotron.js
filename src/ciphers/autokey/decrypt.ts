@@ -1,5 +1,5 @@
 import { getCharOffset, modulo, transform } from '@utils';
-import { CipherTransformer } from '@/types.ts';
+import type { CipherTransformer } from '@types';
 
 /**
  * Decrypts a message encrypted with the Autokey cipher.

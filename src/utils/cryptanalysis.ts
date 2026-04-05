@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Simplified runtime code to avoid URL conversion entirely in CJS
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - __dirname is available in CJS
 const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
@@ -53,7 +54,7 @@ export function scoreMonograms(text: string): number {
  * @returns {number} A safe random number in the range [0, 1)
  */
 export function getSafeRandom(rng: () => number): number {
-  let val: any;
+  let val: unknown;
   try {
     val = rng();
   } catch {
@@ -89,7 +90,7 @@ export class Scorer {
 
     const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
     
-    let data: Record<string, any>;
+    let data: Record<string, unknown>;
     try {
       data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     } catch (err) {

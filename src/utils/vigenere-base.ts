@@ -1,10 +1,10 @@
 import { getScorer, normalize, scoreMonograms } from './cryptanalysis.ts';
-import { CrackResult } from '../types.ts';
+import type { CrackResult } from '@types';
 
 /**
  * Options for the base Vigenere-style cracker.
  */
-export interface BaseCrackOptions<K = any> {
+export interface BaseCrackOptions<K = unknown> {
   /** The ciphertext to crack */
   ciphertext: string;
   /** Maximum key length to test (default 20) */
@@ -30,7 +30,7 @@ export interface BaseCrackOptions<K = any> {
  * @param {BaseCrackOptions} options - The cracking options
  * @returns {CrackResult<K>} The recovered key and decrypted plaintext
  */
-export function baseCrack<K = any>(options: BaseCrackOptions<K>): CrackResult<K> {
+export function baseCrack<K = unknown>(options: BaseCrackOptions<K>): CrackResult<K> {
   const {
     ciphertext,
     maxKeyLength = 20,
