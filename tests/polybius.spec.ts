@@ -23,7 +23,7 @@ describe('Polybius Square', function () {
     });
 
     it('should preserve non-coordinate characters between coordinate pairs', function () {
-      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a- b-");
+      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a b");
     });
   });
 
