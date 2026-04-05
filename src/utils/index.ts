@@ -81,12 +81,17 @@ export function getUniqueCharacters(input: string): string {
  * @returns {string[][]} A 5x5 grid of characters
  */
 export function buildCipherSquare(keyword: string): string[][] {
-  const key = getUniqueCharacters(`${keyword.toLowerCase()}${alphaLower}`)
-    .replace(/[j]/g, '');
+  const normalizedKeyword = keyword.toLowerCase().replace(/j/g, 'i').replace(/[^a-z]/g, '');
+  const key = getUniqueCharacters(`${normalizedKeyword}${alphaLower.replace(/j/g, '')}`);
+
+  if (key.length !== 25) {
+    throw new Error(`Could not build a valid 5x5 cipher square from keyword: "${keyword}". Expected 25 unique symbols.`);
+  }
+
   const cipherSquare = new Array(5)
     .fill(null)
     .map(() => new Array(5).fill(null));
-  for (let i = 0; i < key.length; i += 1) {
+  for (let i = 0; i < 25; i += 1) {
     const char = key.charAt(i);
     const column = i % 5;
     const row = Math.floor(i / 5);
