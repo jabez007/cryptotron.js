@@ -1,5 +1,5 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
+import { getScorer, normalize, scoreMonograms, Scorer } from '../../utils/cryptanalysis.ts';
 
 /**
  * Repeats and truncates a keyword to match a specific alphabetic length.
@@ -62,6 +62,19 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
   let bestPlaintext = '';
   let bestKeyText = '';
 
+  const evaluateCandidate = (keyword: string) => {
+    const keyText = buildKeyText(keyword, alphabeticLength);
+    const plaintext = decrypt({ keyText })(ciphertext);
+    const score = scorer.score(plaintext);
+    
+    if (score > bestOverallScore) {
+      bestOverallScore = score;
+      bestKeyword = keyword;
+      bestPlaintext = plaintext;
+      bestKeyText = keyText;
+    }
+  };
+
   for (let klen = 1; klen <= effectiveMaxKeyLength; klen++) {
     const topShifts: number[][] = [];
     
@@ -73,10 +86,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
         column += normalized[j];
       }
       
-      if (column.length === 0) {
-        topShifts.push([0, 0]);
-        continue;
-      }
+      // column.length is guaranteed to be >= 1 since klen <= normalized.length and i < klen
 
       for (let shift = 0; shift < 26; shift++) {
         let decryptedColumn = '';
@@ -100,34 +110,14 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
           const bit = (c >> i) & 1;
           keyword += String.fromCharCode(topShifts[i][bit] + 65);
         }
-        
-        const keyText = buildKeyText(keyword, alphabeticLength);
-        const plaintext = decrypt({ keyText })(ciphertext);
-        const score = scorer.score(plaintext);
-        
-        if (score > bestOverallScore) {
-          bestOverallScore = score;
-          bestKeyword = keyword;
-          bestPlaintext = plaintext;
-          bestKeyText = keyText;
-        }
+        evaluateCandidate(keyword);
       }
     } else {
       let keyword = '';
       for (let i = 0; i < klen; i++) {
         keyword += String.fromCharCode(topShifts[i][0] + 65);
       }
-      
-      const keyText = buildKeyText(keyword, alphabeticLength);
-      const plaintext = decrypt({ keyText })(ciphertext);
-      const score = scorer.score(plaintext);
-      
-      if (score > bestOverallScore) {
-        bestOverallScore = score;
-        bestKeyword = keyword;
-        bestPlaintext = plaintext;
-        bestKeyText = keyText;
-      }
+      evaluateCandidate(keyword);
     }
   }
 
