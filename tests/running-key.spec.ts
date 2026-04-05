@@ -37,6 +37,7 @@ describe('Running Key', function () {
       
       // Also verify keyText construction matches assuming repeating keyword
       assert.strictEqual(result.key.keyText.length, alphabeticLength);
+      assert.strictEqual(result.key.type, 'repeating-key');
     });
   });
 });

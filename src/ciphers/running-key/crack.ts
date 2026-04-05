@@ -14,17 +14,17 @@ function buildKeyText(keyword: string, alphabeticLength: number): string {
 }
 
 /**
- * Cracks the Running Key cipher.
+ * Attempts to crack the Running Key cipher by assuming a repeating keyword.
  * 
- * NOTE: This implementation assumes the key is a repeating short keyword (treating it like a Vigenère cipher).
- * True running-key ciphers are extremely difficult to crack without the key text or very long ciphertexts.
- * 
- * Uses n-gram frequency analysis to estimate the most likely repeating keyword.
+ * NOTE: This is a Vigenère-style (periodic) fallback attack. True running-key 
+ * (non-periodic) ciphers are extremely difficult to crack without the original 
+ * key text or very long ciphertexts. This function explicitly returns a 
+ * 'repeating-key' result.
  * 
  * @param {string} ciphertext - The text to crack
  * @param {number} maxKeyLength - Maximum keyword length to test for the repeating key assumption (default 20).
  * Values up to the length of the ciphertext will be honored.
- * @returns {Object} The recovered key (keyText) and decrypted plaintext
+ * @returns {Object} The recovered key (with type 'repeating-key') and decrypted plaintext
  */
 export function crack(ciphertext: string, maxKeyLength: number = 20) {
   const normalized = normalize(ciphertext);
@@ -32,7 +32,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
   // Early return for empty input
   if (normalized.length === 0) {
     return {
-      key: { keyText: '' },
+      key: { keyText: '', type: 'repeating-key' },
       plaintext: ciphertext,
     };
   }
@@ -127,7 +127,11 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
 
   const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
   return {
-    key: { keyText: finalKeyText },
+    key: { 
+      keyText: finalKeyText, 
+      keyword: bestKeyword,
+      type: 'repeating-key' 
+    },
     plaintext: bestPlaintext,
   };
 }
