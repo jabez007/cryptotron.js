@@ -8,16 +8,23 @@ on:
 jobs:
   publish_to_npm:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for Trusted Publishers (OIDC)
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Shared Publish to NPM
-        uses: McCann-Hub/create-typescript-template/.github/shared/npm/publish@master
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node_version: 22.x
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          node-version: 22.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Publish to NPM
+        run: npm publish
 
   publish_to_ghpr:
     runs-on: ubuntu-latest

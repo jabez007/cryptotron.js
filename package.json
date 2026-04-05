@@ -2,7 +2,8 @@
   "name": "@jabez007/cryptotron.js",
   "version": "0.2.0",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "type": "module",
   "main": "./dist/cjs/index.js",
