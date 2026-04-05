@@ -19,8 +19,8 @@ import { CipherTransformer } from '@/types.ts';
  */
 export function encrypt(key: { cipherAlphabet: string }): CipherTransformer {
   const { cipherAlphabet } = key;
-  if (cipherAlphabet.length !== 26) {
-    throw new Error('Cipher alphabet must be exactly 26 characters long');
+  if (new Set(cipherAlphabet.toUpperCase()).size !== 26) {
+    throw new Error('Cipher alphabet must be exactly 26 unique characters');
   }
 
   const upperKey = cipherAlphabet.toUpperCase();

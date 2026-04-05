@@ -19,8 +19,8 @@ import { CipherTransformer } from '@/types.ts';
  */
 export function decrypt(key: { keyword: string; cipherChars: string }): CipherTransformer {
   const { keyword, cipherChars } = key;
-  if (cipherChars.length !== 5) {
-    throw new Error('cipherChars must be exactly 5 characters long');
+  if (new Set(cipherChars).size !== 5) {
+    throw new Error('cipherChars must be exactly 5 unique characters');
   }
 
   const cipherSquare = buildCipherSquare(keyword);
@@ -36,18 +36,20 @@ export function decrypt(key: { keyword: string; cipherChars: string }): CipherTr
         // Found first coordinate, look for second
         let foundSecond = false;
         let j = i + 1;
+        let intermediate = '';
         while (j < cipherText.length) {
           const char2 = cipherText.charAt(j);
           const col = cipherChars.indexOf(char2);
           if (col !== -1) {
             // Found second coordinate
             outputText += cipherSquare[row][col];
+            outputText += intermediate;
             i = j + 1;
             foundSecond = true;
             break;
           }
-          // Non-coordinate character between pair (like the '-' in '1-1')
-          // is treated as a coordinate separator and discarded.
+          // Non-coordinate character between pair, collect it
+          intermediate += char2;
           j++;
         }
         if (!foundSecond) {
@@ -56,7 +58,7 @@ export function decrypt(key: { keyword: string; cipherChars: string }): CipherTr
           i++;
         }
       } else {
-        // Literal non-coordinate character (found between complete pairs)
+        // Literal non-coordinate character
         outputText += char1;
         i++;
       }

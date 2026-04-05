@@ -26,8 +26,8 @@ import { CipherTransformer } from '@/types.ts';
  */
 export function encrypt(key: { keyword: string; cipherChars: string }): CipherTransformer {
   const { keyword, cipherChars } = key;
-  if (cipherChars.length !== 5) {
-    throw new Error('cipherChars must be exactly 5 characters long');
+  if (new Set(cipherChars).size !== 5) {
+    throw new Error('cipherChars must be exactly 5 unique characters');
   }
 
   const cipherSquare = buildCipherSquare(keyword);

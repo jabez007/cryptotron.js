@@ -15,6 +15,14 @@ describe('Polybius Square', function () {
     it('should return encrypted message', function () {
       assert.strictEqual(encrypt({keyword: 'foobar', cipherChars: 'ABCDE'})("Hello World"), "BEBCCCCCAB EBABAECCBB");
     });
+
+    it('should throw error for non-unique cipherChars', function () {
+      assert.throws(() => encrypt({keyword: 'foobar', cipherChars: '11234'}), /cipherChars must be exactly 5 unique characters/);
+    });
+
+    it('should throw error for cipherChars with length !== 5', function () {
+      assert.throws(() => encrypt({keyword: 'foobar', cipherChars: '1234'}), /cipherChars must be exactly 5 unique characters/);
+    });
   });
 
   describe('#decrypt', function () {
@@ -23,7 +31,15 @@ describe('Polybius Square', function () {
     });
 
     it('should preserve non-coordinate characters between coordinate pairs', function () {
-      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a b");
+      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a- b-");
+    });
+
+    it('should throw error for non-unique cipherChars', function () {
+      assert.throws(() => decrypt({keyword: 'foobar', cipherChars: '11234'}), /cipherChars must be exactly 5 unique characters/);
+    });
+
+    it('should throw error for cipherChars with length !== 5', function () {
+      assert.throws(() => decrypt({keyword: 'foobar', cipherChars: '1234'}), /cipherChars must be exactly 5 unique characters/);
     });
   });
 
