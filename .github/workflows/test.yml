@@ -5,10 +5,6 @@ on:
     branches-ignore:
       - main
       - master
-  pull_request:
-    branches:
-      - main
-      - master
 
 jobs:
   run_tests:
@@ -42,7 +38,7 @@ jobs:
         run: npm ci
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint:check
 
   build:
     needs: lint

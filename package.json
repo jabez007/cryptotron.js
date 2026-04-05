@@ -17,7 +17,8 @@
     "clean": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true })\"",
     "prebuild": "npm run clean",
     "postbuild": "npm run build:types",
-    "lint": "eslint . --ext .ts,.js --fix"
+    "lint": "eslint . --ext .ts,.js --fix",
+    "lint:check": "eslint . --ext .ts,.js"
   },
   "keywords": [
     "cryptography",
