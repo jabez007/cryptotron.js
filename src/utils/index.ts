@@ -1,4 +1,4 @@
-import { CipherTransformer } from '../types.ts';
+import type { CipherTransformer } from '../types.ts';
 
 export function getCharOffset(val: string): number {
   if (val.length !== 1) {
