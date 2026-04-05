@@ -31,7 +31,8 @@ describe('Polybius Square', function () {
     });
 
     it('should preserve non-coordinate characters between coordinate pairs', function () {
-      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a- b-");
+      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a b");
+      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("11-12"), "a-b");
     });
 
     it('should throw error for non-unique cipherChars', function () {
