@@ -34,20 +34,25 @@ export function decrypt(key: { keyword: string; cipherChars: string }): CipherTr
 
       if (row !== -1) {
         // Found first coordinate, look for second
+        let foundSecond = false;
         let j = i + 1;
+        let intermediate = '';
         while (j < cipherText.length) {
           const char2 = cipherText.charAt(j);
           const col = cipherChars.indexOf(char2);
           if (col !== -1) {
             // Found second coordinate
             outputText += cipherSquare[row][col];
+            outputText += intermediate;
             i = j + 1;
+            foundSecond = true;
             break;
           }
-          // Non-coordinate character between pair, skip it
+          // Non-coordinate character between pair, collect it
+          intermediate += char2;
           j++;
         }
-        if (j >= cipherText.length) {
+        if (!foundSecond) {
           // No second coordinate found, append first char as literal
           outputText += char1;
           i++;

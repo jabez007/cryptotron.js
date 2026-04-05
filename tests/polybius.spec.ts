@@ -21,6 +21,10 @@ describe('Polybius Square', function () {
     it('should return decrypted message', function () {
       assert.strictEqual(decrypt({keyword: 'foobar', cipherChars: 'ABCDE'})("BEBCCCCCAB EBABAECCBB"), "hello world");
     });
+
+    it('should preserve non-coordinate characters between coordinate pairs', function () {
+      assert.strictEqual(decrypt({keyword: '', cipherChars: '12345'})("1-1 1-2"), "a- b-");
+    });
   });
 
   describe('#crack', function () {

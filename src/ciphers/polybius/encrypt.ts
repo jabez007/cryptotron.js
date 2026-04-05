@@ -43,6 +43,6 @@ export function encrypt(key: { keyword: string; cipherChars: string }): CipherTr
         }
       }
     }
-    return '';
+    throw new Error(`Character '${char}' (normalized as '${_char}') not found in cipherSquare`);
   });
 }

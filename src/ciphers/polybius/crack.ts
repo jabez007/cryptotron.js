@@ -1,5 +1,4 @@
-import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, getSafeRandom } from '../../utils/cryptanalysis.ts';
+import { getScorer, getSafeRandom } from '../../utils/cryptanalysis.ts';
 import { alphaLower } from '../../utils/index.ts';
 import { CrackResult } from '@/types.ts';
 

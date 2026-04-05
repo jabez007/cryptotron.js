@@ -1,8 +1,6 @@
 import { getCharOffset, transform } from '@utils';
 import { CipherTransformer } from '@/types.ts';
 
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
 /**
  * Encrypts a message using the Simple Substitution cipher.
  *
