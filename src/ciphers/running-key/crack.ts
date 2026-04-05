@@ -7,8 +7,13 @@ import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.
  * @param {string} keyword - The keyword to expand
  * @param {number} alphabeticLength - The target length
  * @returns {string} The expanded key text
+ * @throws {Error} If keyword is empty
  */
 function buildKeyText(keyword: string, alphabeticLength: number): string {
+  if (keyword.length === 0) {
+    if (alphabeticLength === 0) return '';
+    throw new Error('Keyword must be non-empty to expand to a non-zero length.');
+  }
   const count = Math.ceil(alphabeticLength / keyword.length);
   return keyword.repeat(count).substring(0, alphabeticLength);
 }
@@ -51,6 +56,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
   let bestKeyword = 'A';
   let bestOverallScore = -Infinity;
   let bestPlaintext = '';
+  let bestKeyText = '';
 
   for (let klen = 1; klen <= effectiveMaxKeyLength; klen++) {
     const topShifts: number[][] = [];
@@ -99,6 +105,7 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
           bestOverallScore = score;
           bestKeyword = keyword;
           bestPlaintext = plaintext;
+          bestKeyText = keyText;
         }
       }
     } else {
@@ -115,20 +122,20 @@ export function crack(ciphertext: string, maxKeyLength: number = 20) {
         bestOverallScore = score;
         bestKeyword = keyword;
         bestPlaintext = plaintext;
+        bestKeyText = keyText;
       }
     }
   }
 
   // Fallback for case where no improvement was found (should not happen with valid input)
   if (bestPlaintext === '') {
-    const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
-    bestPlaintext = decrypt({ keyText: finalKeyText })(ciphertext);
+    bestKeyText = buildKeyText(bestKeyword, alphabeticLength);
+    bestPlaintext = decrypt({ keyText: bestKeyText })(ciphertext);
   }
 
-  const finalKeyText = buildKeyText(bestKeyword, alphabeticLength);
   return {
     key: { 
-      keyText: finalKeyText, 
+      keyText: bestKeyText, 
       keyword: bestKeyword,
       type: 'repeating-key' 
     },
