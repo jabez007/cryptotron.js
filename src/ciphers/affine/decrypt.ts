@@ -1,5 +1,5 @@
 import { getCharOffset, modulo, transform } from '@utils';
-import { CipherTransformer } from '@/types.ts';
+import type { CipherTransformer } from '@types';
 
 /**
  * Finds the modular multiplicative inverse of a given number within the range of 1 to 25 (since we're working with modulo 26).

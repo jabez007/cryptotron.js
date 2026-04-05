@@ -1,5 +1,5 @@
 import { buildCipherSquare, transform } from '@utils';
-import type { CipherTransformer } from '@/types.ts';
+import type { CipherTransformer } from '@types';
 
 /**
  * Encrypts a message using the Polybius Square cipher.

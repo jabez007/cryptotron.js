@@ -13,15 +13,9 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@utils": [
-        "src/utils"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ]
+      "@/*": ["src/*"],
+      "@types": ["src/types.ts"],
+      "@utils": ["src/utils/index.ts"]
     },
     "esModuleInterop": true
   },

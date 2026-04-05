@@ -1,5 +1,5 @@
 import { getCharOffset, transform } from '@utils';
-import { CipherTransformer } from '@/types.ts';
+import type { CipherTransformer } from '@types';
 
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 

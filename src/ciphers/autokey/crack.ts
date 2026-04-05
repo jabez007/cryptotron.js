@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, normalize, scoreMonograms } from '@utils';
+import type { CrackResult } from '@types';
 
 /**
  * Cracks the Autokey cipher.
@@ -37,7 +37,7 @@ export function crack(ciphertext: string, maxPrimerLength: number = 15): CrackRe
 
   // We'll test all primer lengths up to maxPrimerLength.
   for (let plen = 1; plen <= maxPrimerLength; plen++) {
-    let currentPrimerArr = new Array(plen).fill('A');
+    const currentPrimerArr = new Array(plen).fill('A');
     
     // 1. Initial guess using independent column frequency analysis (monograms)
     for (let i = 0; i < plen; i++) {

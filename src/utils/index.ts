@@ -1,4 +1,7 @@
-import type { CipherTransformer } from '../types.ts';
+import type { CipherTransformer } from '@types';
+
+export * from './cryptanalysis.ts';
+export * from './vigenere-base.ts';
 
 export function getCharOffset(val: string): number {
   if (val.length !== 1) {

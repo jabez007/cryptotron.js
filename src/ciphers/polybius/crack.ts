@@ -1,6 +1,5 @@
-import { getScorer, getSafeRandom } from '../../utils/cryptanalysis.ts';
-import { alphaLower } from '../../utils/index.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, getSafeRandom, alphaLower } from '@utils';
+import type { CrackResult } from '@types';
 
 /**
  * Detects the most likely characters used as coordinates in a Polybius Square ciphertext.

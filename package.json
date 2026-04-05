@@ -1,6 +1,6 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publishConfig": {
     "access": "public",
     "provenance": true
@@ -17,7 +17,8 @@
     "clean": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true })\"",
     "prebuild": "npm run clean",
     "postbuild": "npm run build:types",
-    "lint": "eslint . --ext .ts,.js --fix"
+    "lint": "eslint . --ext .ts,.js --fix",
+    "lint:check": "eslint . --ext .ts,.js"
   },
   "keywords": [
     "cryptography",
@@ -44,7 +45,7 @@
     "esm"
   ],
   "author": "jabez007",
-  "license": "GPLv3",
+  "license": "GPL-3.0-only",
   "description": "A TypeScript library for classical cryptography ciphers including Caesar, Vigenère, Substitution, and more.",
   "engines": {
     "node": ">=20"

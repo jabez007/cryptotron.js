@@ -1,6 +1,6 @@
 import { decrypt } from './decrypt.ts';
-import { getScorer, normalize, scoreMonograms } from '../../utils/cryptanalysis.ts';
-import { CrackResult } from '@/types.ts';
+import { getScorer, normalize, scoreMonograms } from '@utils';
+import type { CrackResult } from '@types';
 
 /**
  * Builds a repeating key string of the given length from a keyword.
