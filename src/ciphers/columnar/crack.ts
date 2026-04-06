@@ -76,8 +76,8 @@ export function crack(
   let bestGlobalPlaintext = ciphertext;
 
   // Validate and cap maxWidth
-  if (userMaxWidth !== undefined && (!Number.isFinite(userMaxWidth) || userMaxWidth <= 0)) {
-    throw new RangeError(`maxWidth must be a finite positive integer, got ${userMaxWidth}`);
+  if (userMaxWidth !== undefined && (!Number.isFinite(userMaxWidth) || Math.floor(userMaxWidth) < 1)) {
+    throw new RangeError(`maxWidth must be a finite positive integer >= 1, got ${userMaxWidth}`);
   }
   const maxWidth = Math.min(Math.floor(userMaxWidth), normalized.length, 26);
 

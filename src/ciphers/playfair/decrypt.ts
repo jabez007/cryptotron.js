@@ -85,11 +85,11 @@ export function decrypt(
     }
 
     // Remove trailing padding if it's a filler in the second position of the final digraph
-    if (deFilled.length > 0 && result.length % 2 === 0) {
+    if (deFilled.length > 0) {
       const lastChar = deFilled[deFilled.length - 1];
       const secondToLast = deFilled[deFilled.length - 2];
       
-      if ((lastChar === 'X' || lastChar === 'Q')) {
+      if (lastChar === 'X' || lastChar === 'Q') {
         const expectedFiller = secondToLast === 'X' ? 'Q' : 'X';
         if (lastChar === expectedFiller) {
           return deFilled.slice(0, -1);
