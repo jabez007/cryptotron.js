@@ -75,11 +75,11 @@ export function crack(
   let bestGlobalOrder: number[] = [0];
   let bestGlobalPlaintext = ciphertext;
 
-  // Sanitize and cap maxWidth
-  const sanitizedUserMaxWidth = Number.isFinite(userMaxWidth) && userMaxWidth > 0 
-    ? Math.floor(userMaxWidth) 
-    : 1;
-  const maxWidth = Math.min(sanitizedUserMaxWidth, normalized.length, 26);
+  // Validate and cap maxWidth
+  if (userMaxWidth !== undefined && (!Number.isFinite(userMaxWidth) || userMaxWidth <= 0)) {
+    throw new RangeError(`maxWidth must be a finite positive integer, got ${userMaxWidth}`);
+  }
+  const maxWidth = Math.min(Math.floor(userMaxWidth), normalized.length, 26);
 
   for (let width = 1; width <= maxWidth; width++) {
     let bestWidthScore = -Infinity;

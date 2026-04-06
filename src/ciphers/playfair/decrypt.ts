@@ -42,7 +42,9 @@ export function decrypt(
       const posA = charMap.get(a.toLowerCase());
       const posB = charMap.get(b.toLowerCase());
 
-      if (!posA || !posB) continue;
+      if (!posA || !posB) {
+        throw new Error(`Playfair decrypt: missing mapping for digraph "${a}${b}" at index ${i}`);
+      }
 
       if (posA.r === posB.r) {
         // Same row: shift left
@@ -71,9 +73,8 @@ export function decrypt(
       const next = result[i + 1];
       const prev = deFilled[deFilled.length - 1];
 
-      // If we encounter a filler (X or Q)
-      if ((current === 'X' || current === 'Q') && next && prev === next) {
-        // Check if this was a valid filler for the 'prev' character
+      // Only treat as filler if it's the second character of an original digraph (i % 2 === 1)
+      if (i % 2 === 1 && (current === 'X' || current === 'Q') && next && prev === next) {
         const expectedFiller = prev === 'X' ? 'Q' : 'X';
         if (current === expectedFiller) {
           // Skip the filler
@@ -83,24 +84,14 @@ export function decrypt(
       deFilled += current;
     }
 
-    // Remove trailing padding if it's a filler
-    if (deFilled.length > 0) {
+    // Remove trailing padding if it's a filler in the second position of the final digraph
+    if (deFilled.length > 0 && result.length % 2 === 0) {
       const lastChar = deFilled[deFilled.length - 1];
       const secondToLast = deFilled[deFilled.length - 2];
-      // Padding is added when the original length was odd.
-      // We can only reliably remove it if it matches the padding rule.
-      // But wait, Playfair encryption ALWAYS produces an even length.
-      // If the original message was 'HELLO' (length 5), it became 'HE LL OX' (length 6).
-      // Decrypted is 'HELLOX'.
-      // If the last char is 'X' and we don't know the original length, it's ambiguous.
-      // However, typical Playfair implementations just leave the padding or strip it if it's 'X'.
-      if (lastChar === 'X' || lastChar === 'Q') {
-        // In our implementation, we used 'X' (or 'Q' if last was 'X') for padding.
+      
+      if ((lastChar === 'X' || lastChar === 'Q')) {
         const expectedFiller = secondToLast === 'X' ? 'Q' : 'X';
         if (lastChar === expectedFiller) {
-          // It's likely a padding character.
-          // Note: This might strip a legitimate 'X' or 'Q' at the end of a word,
-          // but that's a known limitation of Playfair without length metadata.
           return deFilled.slice(0, -1);
         }
       }
