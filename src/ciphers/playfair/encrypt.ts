@@ -28,12 +28,12 @@ export function encrypt(key: { keyword: string }): CipherTransformer {
 
   return (text: string): string => {
     // Normalize text: uppercase, J -> I, remove non-alphabetic
-    let normalized = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
+    const normalized = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
     
     // Prepare digraphs
     const digraphs: string[] = [];
     for (let i = 0; i < normalized.length; i++) {
-      let a = normalized[i];
+      const a = normalized[i];
       let b = '';
       
       if (i + 1 < normalized.length) {

@@ -24,7 +24,7 @@ describe('Rail-Fence Cipher', () => {
 
     it('should throw error for invalid rails', () => {
       assert.throws(() => encrypt({ rails: 1 }), /Rails must be an integer greater than or equal to 2/);
-      assert.throws(() => encrypt({ rails: 2.5 } as any), /Rails must be an integer greater than or equal to 2/);
+      assert.throws(() => encrypt({ rails: 2.5 } as unknown as { rails: number }), /Rails must be an integer greater than or equal to 2/);
     });
   });
 
