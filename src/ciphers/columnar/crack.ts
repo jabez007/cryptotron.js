@@ -1,4 +1,4 @@
-import { decrypt } from './decrypt.ts';
+import { decryptWithOrder } from './decrypt.ts';
 import { getScorer, normalize, getSafeRandom } from '@utils';
 import type { CrackResult } from '@types';
 
@@ -86,15 +86,11 @@ export function crack(
     let bestWidthOrder: number[] = [];
     let bestWidthPlaintext = '';
 
-    const decryptWithOrder = (order: number[]) => {
-      return decrypt({ keyword: orderToKeyword(order, width) })(ciphertext);
-    };
-
     if (width <= 5) {
       // Exhaustive search for small widths
       const permutations = getPermutations(Array.from({ length: width }, (_, i) => i));
       for (const order of permutations) {
-        const plaintext = decryptWithOrder(order);
+        const plaintext = decryptWithOrder(order, ciphertext);
         const score = scorer.score(plaintext);
         if (score > bestWidthScore) {
           bestWidthScore = score;
@@ -115,12 +111,12 @@ export function crack(
           [currentOrder[i], currentOrder[j]] = [currentOrder[j], currentOrder[i]];
         }
 
-        let currentPlaintext = decryptWithOrder(currentOrder);
+        let currentPlaintext = decryptWithOrder(currentOrder, ciphertext);
         let currentScore = scorer.score(currentPlaintext);
 
         // Hill climbing
         let iterationsWithoutImprovement = 0;
-        const maxIterationsWithoutImprovement = width * width * 50;
+        const maxIterationsWithoutImprovement = Math.min(width * width * 50, 5000);
 
         for (let iter = 0; iter < 5000; iter++) {
           const i = Math.floor(getSafeRandom(rng) * width);
@@ -130,7 +126,7 @@ export function crack(
           const nextOrder = [...currentOrder];
           [nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]];
           
-          const nextPlaintext = decryptWithOrder(nextOrder);
+          const nextPlaintext = decryptWithOrder(nextOrder, ciphertext);
           const nextScore = scorer.score(nextPlaintext);
 
           if (nextScore > currentScore) {

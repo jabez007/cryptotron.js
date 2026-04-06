@@ -1,6 +1,44 @@
 import type { CipherTransformer } from '@types';
 
 /**
+ * Decrypts a message using the Columnar Transposition cipher with a precomputed column order.
+ *
+ * @param {number[]} order - The precomputed column order.
+ * @param {string} text - The ciphertext message.
+ * @returns {string} The decrypted plaintext.
+ */
+export function decryptWithOrder(order: number[], text: string): string {
+  if (text.length === 0) return '';
+  const width = order.length;
+
+  const colLengths = Array(width).fill(Math.floor(text.length / width));
+  for (let i = 0; i < text.length % width; i++) {
+    colLengths[i]++;
+  }
+
+  const columns: string[][] = Array.from({ length: width }, () => []);
+  let currentIdx = 0;
+
+  for (const colIdx of order) {
+    const length = colLengths[colIdx];
+    columns[colIdx] = text.slice(currentIdx, currentIdx + length).split('');
+    currentIdx += length;
+  }
+
+  let decrypted = '';
+  const maxLen = Math.max(...colLengths);
+  for (let row = 0; row < maxLen; row++) {
+    for (let col = 0; col < width; col++) {
+      if (columns[col] && columns[col][row]) {
+        decrypted += columns[col][row];
+      }
+    }
+  }
+
+  return decrypted;
+}
+
+/**
  * Decrypts a message using the Columnar Transposition cipher.
  *
  * To decrypt, we first determine the original column order based on the
@@ -20,7 +58,6 @@ export function decrypt(key: { keyword: string }): CipherTransformer {
   }
 
   const keyword = key.keyword.toUpperCase();
-  const width = keyword.length;
 
   // Determine column order based on alphabetical order of keyword
   const order = keyword
@@ -34,33 +71,6 @@ export function decrypt(key: { keyword: string }): CipherTransformer {
     .map((item) => item.index);
 
   return (text: string): string => {
-    if (text.length === 0) return '';
-
-    const colLengths = Array(width).fill(Math.floor(text.length / width));
-    for (let i = 0; i < text.length % width; i++) {
-      colLengths[i]++;
-    }
-
-    const columns: string[][] = Array.from({ length: width }, () => []);
-    let currentIdx = 0;
-    
-    // Fill columns in the order defined by keyword
-    for (const colIdx of order) {
-      const length = colLengths[colIdx];
-      columns[colIdx] = text.slice(currentIdx, currentIdx + length).split('');
-      currentIdx += length;
-    }
-
-    let decrypted = '';
-    const maxLen = Math.max(...colLengths);
-    for (let row = 0; row < maxLen; row++) {
-      for (let col = 0; col < width; col++) {
-        if (columns[col][row]) {
-          decrypted += columns[col][row];
-        }
-      }
-    }
-
-    return decrypted;
+    return decryptWithOrder(order, text);
   };
 }
