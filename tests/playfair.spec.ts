@@ -25,9 +25,31 @@ describe('Playfair Cipher', () => {
   });
 
   describe('Decryption', () => {
-    it('should decrypt a Playfair cipher', () => {
+    it('should decrypt a Playfair cipher and remove fillers by default', () => {
       const transformer = decrypt({ keyword: 'PLAYFAIR EXAMPLE' });
+      // BMODZBXDNABEKUDMUIXMMOUVIF -> HIDETHEGOLDINTHETREESTUMP
+      assert.strictEqual(transformer('BMODZBXDNABEKUDMUIXMMOUVIF'), 'HIDETHEGOLDINTHETREESTUMP');
+    });
+
+    it('should optionally preserve fillers', () => {
+      const transformer = decrypt({ keyword: 'PLAYFAIR EXAMPLE' }, { preserveFillers: true });
       assert.strictEqual(transformer('BMODZBXDNABEKUDMUIXMMOUVIF'), 'HIDETHEGOLDINTHETREXESTUMP');
+    });
+
+    it('should round-trip correctly for common cases', () => {
+      const keyword = 'KEYWORD';
+      const text = 'HELL';
+      const encrypted = encrypt({ keyword })(text);
+      const decrypted = decrypt({ keyword })(encrypted);
+      assert.strictEqual(decrypted, 'HELL');
+    });
+
+    it('should round-trip for text ending in X', () => {
+      const keyword = 'KEYWORD';
+      const text = 'BOX';
+      const encrypted = encrypt({ keyword })(text);
+      const decrypted = decrypt({ keyword })(encrypted);
+      assert.strictEqual(decrypted, 'BOX');
     });
   });
 

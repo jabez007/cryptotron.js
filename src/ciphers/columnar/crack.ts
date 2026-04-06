@@ -26,6 +26,23 @@ function getPermutations(arr: number[]): number[][] {
 }
 
 /**
+ * Converts a column order array into a representative keyword string.
+ * 
+ * @param {number[]} order - The column order
+ * @param {number} width - The column width
+ * @returns {string} The representative keyword
+ */
+function orderToKeyword(order: number[], width: number): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const kw = Array(width).fill('');
+  const sortedAlphabet = alphabet.split('').slice(0, width);
+  for (let i = 0; i < width; i++) {
+    kw[order[i]] = sortedAlphabet[i];
+  }
+  return kw.join('');
+}
+
+/**
  * Cracks the Columnar Transposition cipher.
  * 
  * It iterates through possible column widths and uses either an exhaustive search
@@ -58,7 +75,11 @@ export function crack(
   let bestGlobalOrder: number[] = [0];
   let bestGlobalPlaintext = ciphertext;
 
-  const maxWidth = Math.min(userMaxWidth, normalized.length);
+  // Sanitize and cap maxWidth
+  const sanitizedUserMaxWidth = Number.isFinite(userMaxWidth) && userMaxWidth > 0 
+    ? Math.floor(userMaxWidth) 
+    : 1;
+  const maxWidth = Math.min(sanitizedUserMaxWidth, normalized.length, 26);
 
   for (let width = 1; width <= maxWidth; width++) {
     let bestWidthScore = -Infinity;
@@ -66,13 +87,7 @@ export function crack(
     let bestWidthPlaintext = '';
 
     const decryptWithOrder = (order: number[]) => {
-      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const kw = Array(width).fill('');
-      const sortedAlphabet = alphabet.split('').slice(0, width);
-      for (let i = 0; i < width; i++) {
-        kw[order[i]] = sortedAlphabet[i];
-      }
-      return decrypt({ keyword: kw.join('') })(ciphertext);
+      return decrypt({ keyword: orderToKeyword(order, width) })(ciphertext);
     };
 
     if (width <= 5) {
@@ -89,7 +104,7 @@ export function crack(
       }
     } else {
       // Hill climbing with multiple restarts for larger widths
-      const restarts = 20;
+      const restarts = 40;
       
       for (let r = 0; r < restarts; r++) {
         let currentOrder = Array.from({ length: width }, (_, i) => i);
@@ -145,16 +160,8 @@ export function crack(
     }
   }
 
-  // Convert best order to a keyword
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const kw = Array(bestGlobalOrder.length).fill('');
-  const sortedAlphabet = alphabet.split('').slice(0, bestGlobalOrder.length);
-  for (let i = 0; i < bestGlobalOrder.length; i++) {
-    kw[bestGlobalOrder[i]] = sortedAlphabet[i];
-  }
-
   return {
-    key: { keyword: kw.join('') },
+    key: { keyword: orderToKeyword(bestGlobalOrder, bestGlobalOrder.length) },
     plaintext: bestGlobalPlaintext,
   };
 }
