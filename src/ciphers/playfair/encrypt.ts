@@ -39,15 +39,18 @@ export function encrypt(key: { keyword: string }): CipherTransformer {
       if (i + 1 < normalized.length) {
         b = normalized[i + 1];
         if (a === b) {
-          // When a === b, we emit a + 'X' and leave i untouched so the
+          // When a === b, we emit a + filler and leave i untouched so the
           // next iteration treats the original b as the next a.
-          b = 'X';
+          // Use 'X' as filler, unless a is 'X', then use 'Q'.
+          const filler = a === 'X' ? 'Q' : 'X';
+          b = filler;
         } else {
           // Successfully formed a pair, increment i to skip the consumed character.
           i++;
         }
       } else {
-        b = 'X';
+        // Last character left alone, pad with X (or Q if last character is X)
+        b = a === 'X' ? 'Q' : 'X';
       }
       digraphs.push(a + b);
     }

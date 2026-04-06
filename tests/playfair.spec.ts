@@ -8,14 +8,19 @@ describe('Playfair Cipher', () => {
       assert.strictEqual(transformer('HIDE THE GOLD IN THE TREE STUMP'), 'BMODZBXDNABEKUDMUIXMMOUVIF');
     });
 
-    it('should handle repeated letters by inserting X', () => {
+    it('should handle repeated letters by inserting filler', () => {
       const transformer = encrypt({ keyword: 'KEYWORD' });
-      // 'HELL' becomes digraphs 'HE', then 'LL' which becomes 'LX'
-      // (inserting X between repeated letters), leaving a trailing 'L'
-      // which is padded to 'LX', resulting in digraphs 'HE', 'LX', 'LX'
-      // (6 characters total).
+      // K E Y W O / R D A B C / F G H I L / M N P Q S / T U V X Z
+      
+      // 'HELL' -> digraphs: 'HE', 'LX', 'LX'
+      // 'HE' -> 'GY', 'LX' -> 'IZ', 'LX' -> 'IZ'
       const result = transformer('HELL');
-      assert.strictEqual(result.length, 6);
+      assert.strictEqual(result, 'GYIZIZ');
+
+      // 'XX' -> digraphs: 'XQ', 'XQ'
+      // X[4,3], Q[3,3] same col, shift down -> W[0,3], X[4,3] -> 'WX'
+      const resultXX = transformer('XX'); 
+      assert.strictEqual(resultXX, 'WXWX');
     });
   });
 
@@ -36,12 +41,13 @@ describe('Playfair Cipher', () => {
       const result = crack(ciphertext);
       
       assert.ok(result.plaintext.length >= plaintext.length, 'Cracked length should be at least original length');
-      // Ensure at least some characters match (should be a common substring or many individual matches)
+      // Ensure at least 10% of characters match
       let matches = 0;
       for (let i = 0; i < plaintext.length; i++) {
         if (result.plaintext[i] === plaintext[i]) matches++;
       }
-      assert.ok(matches > 0, 'Cracked plaintext should have some similarity to original');
+      const threshold = Math.floor(plaintext.length * 0.1);
+      assert.ok(matches >= threshold, `Cracked plaintext should have at least 10% similarity (got ${matches}/${plaintext.length}, needed ${threshold})`);
     });
   });
 });

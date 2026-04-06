@@ -3,17 +3,46 @@ import { getScorer, normalize, getSafeRandom } from '@utils';
 import type { CrackResult } from '@types';
 
 /**
+ * Generates all permutations of an array.
+ * 
+ * @param {number[]} arr - The array to permute
+ * @returns {number[][]} All permutations
+ */
+function getPermutations(arr: number[]): number[][] {
+  const result: number[][] = [];
+
+  function permute(current: number[], remaining: number[]) {
+    if (remaining.length === 0) {
+      result.push(current);
+      return;
+    }
+    for (let i = 0; i < remaining.length; i++) {
+      permute([...current, remaining[i]], [...remaining.slice(0, i), ...remaining.slice(i + 1)]);
+    }
+  }
+
+  permute([], arr);
+  return result;
+}
+
+/**
  * Cracks the Columnar Transposition cipher.
  * 
- * It iterates through possible column widths and uses a hill-climbing
- * algorithm to find the best column order for each width based on
- * n-gram frequency analysis.
+ * It iterates through possible column widths and uses either an exhaustive search
+ * (for small widths) or a hill-climbing algorithm (for larger widths) to find
+ * the best column order based on n-gram frequency analysis.
  * 
  * @param {string} ciphertext - The text to crack
- * @param {Function} [rng] - Optional random number generator
+ * @param {Object} [options] - Cracking options
+ * @param {number} [options.maxWidth=10] - Maximum column width to test
+ * @param {Function} [options.rng=Math.random] - Optional random number generator
  * @returns {CrackResult<{ keyword: string }>} The recovered key (dummy keyword) and decrypted plaintext
  */
-export function crack(ciphertext: string, rng: () => number = Math.random): CrackResult<{ keyword: string }> {
+export function crack(
+  ciphertext: string, 
+  options: { maxWidth?: number; rng?: () => number } = {}
+): CrackResult<{ keyword: string }> {
+  const { maxWidth: userMaxWidth = 10, rng = Math.random } = options;
   const normalized = normalize(ciphertext);
   
   if (normalized.length <= 1) {
@@ -29,10 +58,9 @@ export function crack(ciphertext: string, rng: () => number = Math.random): Crac
   let bestGlobalOrder: number[] = [0];
   let bestGlobalPlaintext = ciphertext;
 
-  // Try column widths from 2 to 10
-  const maxWidth = Math.min(10, normalized.length);
+  const maxWidth = Math.min(userMaxWidth, normalized.length);
 
-  for (let width = 2; width <= maxWidth; width++) {
+  for (let width = 1; width <= maxWidth; width++) {
     let bestWidthScore = -Infinity;
     let bestWidthOrder: number[] = [];
     let bestWidthPlaintext = '';
@@ -47,52 +75,66 @@ export function crack(ciphertext: string, rng: () => number = Math.random): Crac
       return decrypt({ keyword: kw.join('') })(ciphertext);
     };
 
-    // Multiple restarts for each width to avoid local maxima
-    const restarts = width <= 5 ? 1 : 20;
-    
-    for (let r = 0; r < restarts; r++) {
-      let currentOrder = Array.from({ length: width }, (_, i) => i);
-      
-      // Shuffle initial order
-      for (let i = width - 1; i > 0; i--) {
-        const j = Math.floor(getSafeRandom(rng) * (i + 1));
-        [currentOrder[i], currentOrder[j]] = [currentOrder[j], currentOrder[i]];
+    if (width <= 5) {
+      // Exhaustive search for small widths
+      const permutations = getPermutations(Array.from({ length: width }, (_, i) => i));
+      for (const order of permutations) {
+        const plaintext = decryptWithOrder(order);
+        const score = scorer.score(plaintext);
+        if (score > bestWidthScore) {
+          bestWidthScore = score;
+          bestWidthOrder = order;
+          bestWidthPlaintext = plaintext;
+        }
       }
-
-      let currentPlaintext = decryptWithOrder(currentOrder);
-      let currentScore = scorer.score(currentPlaintext);
-
-      // Hill climbing
-      let iterationsWithoutImprovement = 0;
-      const maxIterationsWithoutImprovement = width * width * 50;
-
-      for (let iter = 0; iter < 5000; iter++) {
-        const i = Math.floor(getSafeRandom(rng) * width);
-        const j = Math.floor(getSafeRandom(rng) * width);
-        if (i === j) continue;
-
-        const nextOrder = [...currentOrder];
-        [nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]];
+    } else {
+      // Hill climbing with multiple restarts for larger widths
+      const restarts = 20;
+      
+      for (let r = 0; r < restarts; r++) {
+        let currentOrder = Array.from({ length: width }, (_, i) => i);
         
-        const nextPlaintext = decryptWithOrder(nextOrder);
-        const nextScore = scorer.score(nextPlaintext);
-
-        if (nextScore > currentScore) {
-          currentScore = nextScore;
-          currentOrder = nextOrder;
-          currentPlaintext = nextPlaintext;
-          iterationsWithoutImprovement = 0;
-        } else {
-          iterationsWithoutImprovement++;
+        // Shuffle initial order
+        for (let i = width - 1; i > 0; i--) {
+          const j = Math.floor(getSafeRandom(rng) * (i + 1));
+          [currentOrder[i], currentOrder[j]] = [currentOrder[j], currentOrder[i]];
         }
 
-        if (iterationsWithoutImprovement > maxIterationsWithoutImprovement) break;
-      }
+        let currentPlaintext = decryptWithOrder(currentOrder);
+        let currentScore = scorer.score(currentPlaintext);
 
-      if (currentScore > bestWidthScore) {
-        bestWidthScore = currentScore;
-        bestWidthOrder = currentOrder;
-        bestWidthPlaintext = currentPlaintext;
+        // Hill climbing
+        let iterationsWithoutImprovement = 0;
+        const maxIterationsWithoutImprovement = width * width * 50;
+
+        for (let iter = 0; iter < 5000; iter++) {
+          const i = Math.floor(getSafeRandom(rng) * width);
+          const j = Math.floor(getSafeRandom(rng) * width);
+          if (i === j) continue;
+
+          const nextOrder = [...currentOrder];
+          [nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]];
+          
+          const nextPlaintext = decryptWithOrder(nextOrder);
+          const nextScore = scorer.score(nextPlaintext);
+
+          if (nextScore > currentScore) {
+            currentScore = nextScore;
+            currentOrder = nextOrder;
+            currentPlaintext = nextPlaintext;
+            iterationsWithoutImprovement = 0;
+          } else {
+            iterationsWithoutImprovement++;
+          }
+
+          if (iterationsWithoutImprovement >= maxIterationsWithoutImprovement) break;
+        }
+
+        if (currentScore > bestWidthScore) {
+          bestWidthScore = currentScore;
+          bestWidthOrder = currentOrder;
+          bestWidthPlaintext = currentPlaintext;
+        }
       }
     }
 
