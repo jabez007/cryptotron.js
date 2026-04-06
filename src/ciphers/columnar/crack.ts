@@ -37,6 +37,16 @@ export function crack(ciphertext: string, rng: () => number = Math.random): Crac
     let bestWidthOrder: number[] = [];
     let bestWidthPlaintext = '';
 
+    const decryptWithOrder = (order: number[]) => {
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const kw = Array(width).fill('');
+      const sortedAlphabet = alphabet.split('').slice(0, width);
+      for (let i = 0; i < width; i++) {
+        kw[order[i]] = sortedAlphabet[i];
+      }
+      return decrypt({ keyword: kw.join('') })(ciphertext);
+    };
+
     // Multiple restarts for each width to avoid local maxima
     const restarts = width <= 5 ? 1 : 20;
     
@@ -48,16 +58,6 @@ export function crack(ciphertext: string, rng: () => number = Math.random): Crac
         const j = Math.floor(getSafeRandom(rng) * (i + 1));
         [currentOrder[i], currentOrder[j]] = [currentOrder[j], currentOrder[i]];
       }
-
-      const decryptWithOrder = (order: number[]) => {
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const kw = Array(width).fill('');
-        const sortedAlphabet = alphabet.split('').slice(0, width);
-        for (let i = 0; i < width; i++) {
-          kw[order[i]] = sortedAlphabet[i];
-        }
-        return decrypt({ keyword: kw.join('') })(ciphertext);
-      };
 
       let currentPlaintext = decryptWithOrder(currentOrder);
       let currentScore = scorer.score(currentPlaintext);

@@ -24,7 +24,7 @@ export function decrypt(key: { keyword: string }): CipherTransformer {
   }
 
   return (text: string): string => {
-    const normalized = text.toUpperCase().replace(/[^A-Z]/g, '');
+    const normalized = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
     if (normalized.length % 2 !== 0) {
       throw new Error('Ciphertext must have an even number of characters');
     }
@@ -33,8 +33,8 @@ export function decrypt(key: { keyword: string }): CipherTransformer {
     for (let i = 0; i < normalized.length; i += 2) {
       const a = normalized[i];
       const b = normalized[i + 1];
-      const posA = charMap.get(a.toLowerCase())!;
-      const posB = charMap.get(b.toLowerCase())!;
+      const posA = charMap.get(a.toLowerCase());
+      const posB = charMap.get(b.toLowerCase());
 
       if (!posA || !posB) continue;
 

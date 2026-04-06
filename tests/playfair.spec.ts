@@ -10,7 +10,11 @@ describe('Playfair Cipher', () => {
 
     it('should handle repeated letters by inserting X', () => {
       const transformer = encrypt({ keyword: 'KEYWORD' });
-      const result = transformer('HELL'); // HE LX L -> HELX LX
+      // 'HELL' becomes digraphs 'HE', then 'LL' which becomes 'LX'
+      // (inserting X between repeated letters), leaving a trailing 'L'
+      // which is padded to 'LX', resulting in digraphs 'HE', 'LX', 'LX'
+      // (6 characters total).
+      const result = transformer('HELL');
       assert.strictEqual(result.length, 6);
     });
   });
@@ -30,7 +34,14 @@ describe('Playfair Cipher', () => {
       const keyword = 'KEYWORD';
       const ciphertext = encrypt({ keyword })(plaintext);
       const result = crack(ciphertext);
-      assert.notStrictEqual(result.plaintext, '');
+      
+      assert.ok(result.plaintext.length >= plaintext.length, 'Cracked length should be at least original length');
+      // Ensure at least some characters match (should be a common substring or many individual matches)
+      let matches = 0;
+      for (let i = 0; i < plaintext.length; i++) {
+        if (result.plaintext[i] === plaintext[i]) matches++;
+      }
+      assert.ok(matches > 0, 'Cracked plaintext should have some similarity to original');
     });
   });
 });

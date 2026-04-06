@@ -39,10 +39,11 @@ export function encrypt(key: { keyword: string }): CipherTransformer {
       if (i + 1 < normalized.length) {
         b = normalized[i + 1];
         if (a === b) {
+          // When a === b, we emit a + 'X' and leave i untouched so the
+          // next iteration treats the original b as the next a.
           b = 'X';
-          // i stays same for next iteration's 'a', but we skip 'b' since we used 'X'
-          // Wait, actually we used 'a' and 'X'. So next 'a' is original 'b'.
         } else {
+          // Successfully formed a pair, increment i to skip the consumed character.
           i++;
         }
       } else {
