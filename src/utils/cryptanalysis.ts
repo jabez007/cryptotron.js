@@ -1,11 +1,14 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import monograms from '../ngrams/monograms.ts';
+import bigrams from '../ngrams/bigrams.ts';
+import trigrams from '../ngrams/trigrams.ts';
+import quadgrams from '../ngrams/quadgrams.ts';
 
-// Simplified runtime code to avoid URL conversion entirely in CJS
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - __dirname is available in CJS
-const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const NGRAM_DATA: Record<string, Record<string, number>> = {
+  monograms,
+  bigrams,
+  trigrams,
+  quadgrams
+};
 
 /**
  * Normalizes text by converting to uppercase and removing non-alphabetic characters.
@@ -88,19 +91,7 @@ export class Scorer {
       throw new Error(`Invalid ngramType: '${ngramType}'. Must be one of: monograms, bigrams, trigrams, quadgrams.`);
     }
 
-    const filePath = path.join(currentDir, '..', 'ngrams', `${ngramType}.json`);
-    
-    let data: Record<string, unknown>;
-    try {
-      data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch (err) {
-      throw new Error(`Failed to load n-gram data for '${ngramType}' from ${filePath}: ${(err as Error).message}`);
-    }
-
-    // Validate payload shape and counts. Explicitly reject arrays.
-    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-      throw new Error(`Invalid data format in ${filePath}. Expected a JSON object.`);
-    }
+    const data = NGRAM_DATA[ngramType];
 
     this.ngrams = {};
     this.total = 0;
@@ -109,14 +100,14 @@ export class Scorer {
       const count = Number(val);
       // Ensure counts are finite positive numbers
       if (!Number.isFinite(count) || count <= 0) {
-        throw new Error(`Invalid count for n-gram '${key}' in ${filePath}: ${val}. Must be a finite positive number.`);
+        throw new Error(`Invalid count for n-gram '${key}' in ${ngramType}. Must be a finite positive number.`);
       }
       this.ngrams[key] = count;
       this.total += count;
     }
 
     if (this.total === 0) {
-      throw new Error(`Total n-gram count is 0 in ${filePath}. Cannot compute probabilities.`);
+      throw new Error(`Total n-gram count is 0 in ${ngramType}. Cannot compute probabilities.`);
     }
 
     this.n = ngramType === 'monograms' ? 1 : 
