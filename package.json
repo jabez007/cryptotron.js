@@ -1,6 +1,6 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publishConfig": {
     "access": "public"
   },
