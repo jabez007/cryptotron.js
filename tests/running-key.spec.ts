@@ -7,11 +7,23 @@ describe('Running Key', function () {
     it('should return encrypted message', function () {
       assert.strictEqual(encrypt({keyText: "Lorem ipsum"})("Hello World"), "Sscpa Edjfp");
     });
+
+    it('should handle encrypting messages multiple times', function () {
+      const encryptor = encrypt({keyText: "KEY"});
+      assert.strictEqual(encryptor("HELLO"), "RIJVS");
+      assert.strictEqual(encryptor("HELLO"), "RIJVS");
+    });
   });
 
   describe('#decrypt', function () {
     it('should return decrypted message', function () {
       assert.strictEqual(decrypt({keyText: "Lorem ipsum"})("Sscpa Edjfp"), "Hello World");
+    });
+
+    it('should handle decrypting messages multiple times', function () {
+      const decryptor = decrypt({keyText: "KEY"});
+      assert.strictEqual(decryptor("RIJVS"), "HELLO");
+      assert.strictEqual(decryptor("RIJVS"), "HELLO");
     });
   });
 

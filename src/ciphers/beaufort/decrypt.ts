@@ -16,31 +16,28 @@ export function algorithm(keyword: string): CipherTransformer {
     );
   }
 
-  let j = 0;
+  return (inputText: string): string => {
+    let j = 0;
 
-  return transform((char, index, text) => {
-    if (index === 0) {
-      j = 0; // make sure j starts fresh
-    }
+    return transform((char, index, text) => {
+      const _j = j % cleanedKeyword.length;
 
-    const _j = j % cleanedKeyword.length;
+      const offset = getCharOffset(char);
+      const keyOffset = getCharOffset(cleanedKeyword.charAt(_j));
 
-    const offset = getCharOffset(char);
-    const keyOffset = getCharOffset(
-      cleanedKeyword.charAt(_j),
-    );
+      const result = String.fromCharCode(
+        modulo(
+          cleanedKeyword.charCodeAt(_j) -
+            keyOffset -
+            (text.charCodeAt(index) - offset),
+          26,
+        ) + offset,
+      );
+      j += 1;
 
-    const result = String.fromCharCode(
-      modulo(
-        (cleanedKeyword.charCodeAt(_j) - keyOffset) -
-          (text.charCodeAt(index) - offset),
-        26,
-      ) + offset,
-    );
-    j += 1;
-
-    return result;
-  });
+      return result;
+    })(inputText);
+  };
 }
 
 /**

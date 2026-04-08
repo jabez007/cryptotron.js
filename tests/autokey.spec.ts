@@ -13,6 +13,13 @@ describe('Autokey', function () {
       assert.strictEqual(encryptor("Lorem ipsum dolor sit amet"), "Qcffm zaglq pwagl elh lavl");
       assert.strictEqual(encryptor("consectetuer adipiscing elit"), "hcbtetvsgmit thbjmjclvv mdkb");
     });
+
+    it('should reset state between multiple calls with the same transformer', function () {
+      const encryptor = encrypt({primer: "KEY"});
+      const first = encryptor("HELLO");
+      const second = encryptor("HELLO");
+      assert.strictEqual(first, second);
+    });
   });
 
   describe('#decrypt', function () {
@@ -24,6 +31,13 @@ describe('Autokey', function () {
       const decryptor = decrypt({primer: "foobar"});
       assert.strictEqual(decryptor("Qcffm zaglq pwagl elh lavl"), "Lorem ipsum dolor sit amet");
       assert.strictEqual(decryptor("hcbtetvsgmit thbjmjclvv mdkb"), "consectetuer adipiscing elit");
+    });
+
+    it('should reset state between multiple calls with the same transformer', function () {
+      const decryptor = decrypt({primer: "KEY"});
+      const first = decryptor("RIJSS");
+      const second = decryptor("RIJSS");
+      assert.strictEqual(first, second);
     });
   });
 
