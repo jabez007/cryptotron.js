@@ -1,14 +1,62 @@
 import monograms from '../ngrams/monograms.ts';
 import bigrams from '../ngrams/bigrams.ts';
-import trigrams from '../ngrams/trigrams.ts';
-import quadgrams from '../ngrams/quadgrams.ts';
 
 const NGRAM_DATA: Record<string, Record<string, number>> = {
   monograms,
   bigrams,
-  trigrams,
-  quadgrams
+  trigrams: {},
+  quadgrams: {}
 };
+
+/**
+ * Resets the singleton scorer instances. This is necessary when the underlying
+ * n-gram data has changed (e.g., via loadNgramData or setNgramData).
+ */
+export function resetScorers(): void {
+  monogramsScorer = null;
+  bigramsScorer = null;
+  trigramsScorer = null;
+  quadgramsScorer = null;
+}
+
+/**
+ * Loads n-gram data dynamically. This is useful for browser environments
+ * where you want to lazy-load large data files like quadgrams.
+ * 
+ * @param {number} n - The n-gram length (3 or 4)
+ * @returns {Promise<void>}
+ */
+export async function loadNgramData(n: number): Promise<void> {
+  if (n === 1 || n === 2) {
+    return; // Already loaded statically
+  }
+  if (n === 3) {
+    if (Object.keys(NGRAM_DATA.trigrams).length === 0) {
+      const module = await import('../ngrams/trigrams.ts');
+      NGRAM_DATA.trigrams = module.default;
+      resetScorers();
+    }
+  } else if (n === 4) {
+    if (Object.keys(NGRAM_DATA.quadgrams).length === 0) {
+      const module = await import('../ngrams/quadgrams.ts');
+      NGRAM_DATA.quadgrams = module.default;
+      resetScorers();
+    }
+  } else {
+    throw new RangeError(`Invalid n-gram length: ${n}. Must be between 1 and 4.`);
+  }
+}
+
+/**
+ * Manually sets n-gram data.
+ * 
+ * @param {'trigrams' | 'quadgrams'} type - The type of n-gram data
+ * @param {Record<string, number>} data - The data to set
+ */
+export function setNgramData(type: 'trigrams' | 'quadgrams', data: Record<string, number>): void {
+  NGRAM_DATA[type] = data;
+  resetScorers();
+}
 
 /**
  * Normalizes text by converting to uppercase and removing non-alphabetic characters.

@@ -1,6 +1,6 @@
 {
   "name": "@jabez007/cryptotron.js",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "publishConfig": {
     "access": "public"
   },
@@ -69,6 +69,11 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
+    },
+    "./lite": {
+      "import": "./dist/esm/lite.js",
+      "require": "./dist/cjs/lite.js",
+      "types": "./dist/types/lite.d.ts"
     }
   },
   "files": [

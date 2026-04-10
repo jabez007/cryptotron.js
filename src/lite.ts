@@ -1,10 +1,3 @@
-import { setNgramData } from './utils/cryptanalysis.ts';
-import { STATIC_NGRAMS } from './utils/ngram-data-static.ts';
-
-// Initialize with static data by default for backward compatibility
-setNgramData('trigrams', STATIC_NGRAMS.trigrams);
-setNgramData('quadgrams', STATIC_NGRAMS.quadgrams);
-
 export type * from '@types';
 export * as affine from './ciphers/affine/index.ts';
 export * as autokey from './ciphers/autokey/index.ts';
