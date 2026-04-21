@@ -8,6 +8,7 @@ export * as polybius from './ciphers/polybius/index.ts';
 export * as playfair from './ciphers/playfair/index.ts';
 export * as railFence from './ciphers/rail-fence/index.ts';
 export * as runningKey from './ciphers/running-key/index.ts';
+export * as scytale from './ciphers/scytale/index.ts';
 export * as substitution from './ciphers/substitution/index.ts';
 export * as vigenere from './ciphers/vigenere/index.ts';
 
