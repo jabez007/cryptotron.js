@@ -4,6 +4,7 @@ export * as autokey from './ciphers/autokey/index.ts';
 export * as beaufort from './ciphers/beaufort/index.ts';
 export * as caesar from './ciphers/caesar/index.ts';
 export * as columnar from './ciphers/columnar/index.ts';
+export * as hill from './ciphers/hill/index.ts';
 export * as polybius from './ciphers/polybius/index.ts';
 export * as playfair from './ciphers/playfair/index.ts';
 export * as railFence from './ciphers/rail-fence/index.ts';
