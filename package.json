@@ -66,14 +66,14 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/cjs/index.js"
     },
     "./lite": {
+      "types": "./dist/types/lite.d.ts",
       "import": "./dist/esm/lite.js",
-      "require": "./dist/cjs/lite.js",
-      "types": "./dist/types/lite.d.ts"
+      "require": "./dist/cjs/lite.js"
     }
   },
   "files": [
