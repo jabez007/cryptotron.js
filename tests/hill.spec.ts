@@ -79,8 +79,8 @@ describe('Hill', function () {
       const message = 'The Hill cipher is a polygraphic substitution cipher.';
       const encrypted = encrypt({ matrix })(message);
       const decrypted = decrypt({ matrix })(encrypted);
-      // Note: Decrypted might have extra 'X' at the end due to padding if the number of letters was odd
-      assert.ok(decrypted.startsWith(message));
+      // Note: Decrypted might have an optional 'X' at the end due to padding if the number of letters was odd
+      assert.ok(decrypted === message || decrypted === message + 'X');
     });
   });
 });
