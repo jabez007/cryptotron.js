@@ -25,7 +25,7 @@ describe('Scytale Cipher', function () {
     });
 
     it('should throw an error for invalid diameter', function () {
-      assert.throws(() => scytale.encrypt({ diameter: 1 } as any));
+      assert.throws(() => scytale.encrypt({ diameter: 1 } as { diameter: number }));
     });
   });
 
