@@ -89,6 +89,15 @@ export function modInverse(a: number, m: number): number {
  */
 export function determinant(matrix: number[][]): number {
   const n = matrix.length;
+  if (n === 0 || matrix[0].length !== n) {
+    throw new Error('determinant requires a non-empty square matrix');
+  }
+  for (let i = 1; i < n; i++) {
+    if (matrix[i].length !== n) {
+      throw new Error('determinant requires a non-empty square matrix');
+    }
+  }
+
   if (n === 1) return matrix[0][0];
   if (n === 2) return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
 
