@@ -14,11 +14,19 @@ It’s not intended for secure applications, but is perfect for learning and dem
   - Autokey
   - Beaufort
   - Caesar
+  - Columnar Transposition
+  - Hill
+  - Playfair
   - Polybius Square
+  - Rail-fence
   - Running Key
+  - Scytale
   - Simple Substitution
   - Vigenère
-  - More coming soon...
+- 🔍 Automated Cryptanalysis
+  - Frequency analysis-based "cracking" for most ciphers
+  - Support for monograms, bigrams, trigrams, and quadgrams
+  - Synchronous and asynchronous n-gram loading
 - 🔁 Symmetric encryption and decryption
 - 📦 Lightweight and modular
 - ✅ Includes unit tests
