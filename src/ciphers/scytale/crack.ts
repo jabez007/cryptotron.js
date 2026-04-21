@@ -23,7 +23,13 @@ export function crack(ciphertext: string): CrackResult<{ diameter: number }> {
   }
 
   // Use quadgrams if possible (best for transposition ciphers)
-  const scorer = getScorer(Math.max(1, Math.min(4, normalized.length)));
+  // Fall back to bigrams if higher-order n-grams are not loaded (lite builds)
+  let scorer;
+  try {
+    scorer = getScorer(Math.min(4, normalized.length));
+  } catch {
+    scorer = getScorer(2);
+  }
 
   let bestDiameter = 2;
   let bestScore = -Infinity;
