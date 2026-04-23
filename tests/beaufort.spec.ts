@@ -13,6 +13,12 @@ describe('Beaufort', function () {
       assert.strictEqual(encryptor("Lorem ipsum dolor sit amet"), "Uaxxo jqwup xduax jsy fcki");
       assert.strictEqual(encryptor("consectetuer adipiscing elit"), "dabjwpmkvhwa flgmszdgbv wgxv");
     });
+
+    it('should handle encrypting messages with leading non-alphabetic characters multiple times', function () {
+      const encryptor = encrypt({keyword: "KEY"});
+      assert.strictEqual(encryptor("!HELLO"), "!DANZQ");
+      assert.strictEqual(encryptor("!HELLO"), "!DANZQ");
+    });
   });
 
   describe('#decrypt', function () {

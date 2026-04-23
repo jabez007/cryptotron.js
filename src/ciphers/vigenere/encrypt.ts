@@ -25,23 +25,25 @@ export function encrypt(key: { keyword: string }): CipherTransformer {
     throw new Error('Keyword must contain at least one alphabetic character');
   }
 
-  let j = 0;
+  return (inputText: string): string => {
+    let j = 0;
 
-  return transform((char) => {
-    const _j = j % cleanedKey.length;
+    return transform((char) => {
+      const _j = j % cleanedKey.length;
 
-    const offset = getCharOffset(char);
-    const keyOffset = getCharOffset(cleanedKey.charAt(_j));
+      const offset = getCharOffset(char);
+      const keyOffset = getCharOffset(cleanedKey.charAt(_j));
 
-    const result = String.fromCharCode(
-      modulo(
-        (char.charCodeAt(0) - offset) +
-          (cleanedKey.charCodeAt(_j) - keyOffset),
-        26,
-      ) + offset,
-    );
-    j += 1;
+      const result = String.fromCharCode(
+        modulo(
+          (char.charCodeAt(0) - offset) +
+            (cleanedKey.charCodeAt(_j) - keyOffset),
+          26,
+        ) + offset,
+      );
+      j += 1;
 
-    return result;
-  });
+      return result;
+    })(inputText);
+  };
 }

@@ -7,11 +7,23 @@ describe('Vigenere', function () {
     it('should return encrypted message', function () {
       assert.strictEqual(encrypt({keyword: "foobar"})("Hello World"), "Mszmo Ntfze");
     });
+
+    it('should handle encrypting messages multiple times', function () {
+      const encryptor = encrypt({keyword: "KEY"});
+      assert.strictEqual(encryptor("HELLO"), "RIJVS");
+      assert.strictEqual(encryptor("HELLO"), "RIJVS");
+    });
   });
 
   describe('#decrypt', function () {
     it('should return decrypted message', function () {
       assert.strictEqual(decrypt({keyword: "foobar"})("Mszmo Ntfze"), "Hello World");
+    });
+
+    it('should handle decrypting messages multiple times', function () {
+      const decryptor = decrypt({keyword: "KEY"});
+      assert.strictEqual(decryptor("RIJVS"), "HELLO");
+      assert.strictEqual(decryptor("RIJVS"), "HELLO");
     });
   });
 

@@ -63,6 +63,53 @@ export function gcd(a: number, b: number): number {
   return gcd(b, a % b);
 }
 
+/**
+ * Finds the modular multiplicative inverse of a modulo m.
+ * 
+ * @param {number} a - The number to find the inverse for.
+ * @param {number} m - The modulus.
+ * @returns {number} The modular inverse.
+ * @throws {Error} If the inverse does not exist.
+ */
+export function modInverse(a: number, m: number): number {
+  a = modulo(a, m);
+  for (let x = 1; x < m; x++) {
+    if (modulo(a * x, m) === 1) {
+      return x;
+    }
+  }
+  throw new Error(`Modular inverse of ${a} modulo ${m} does not exist`);
+}
+
+/**
+ * Calculates the determinant of a square matrix.
+ * 
+ * @param {number[][]} matrix - The square matrix.
+ * @returns {number} The determinant.
+ */
+export function determinant(matrix: number[][]): number {
+  const n = matrix.length;
+  if (n === 0 || matrix[0].length !== n) {
+    throw new Error('determinant requires a non-empty square matrix');
+  }
+  for (let i = 1; i < n; i++) {
+    if (matrix[i].length !== n) {
+      throw new Error('determinant requires a non-empty square matrix');
+    }
+  }
+
+  if (n === 1) return matrix[0][0];
+  if (n === 2) return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+
+  let det = 0;
+  for (let j = 0; j < n; j++) {
+    det += (j % 2 === 0 ? 1 : -1) * matrix[0][j] * determinant(
+      matrix.slice(1).map(row => row.filter((_, colIdx) => colIdx !== j))
+    );
+  }
+  return det;
+}
+
 export const alphaLower = [...Array(26)]
   .map((_, i) => String.fromCharCode(97 + i))
   .join('');
