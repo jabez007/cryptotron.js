@@ -26,11 +26,10 @@
     "module": "esnext" /* Specify what module code is generated. */,
     "rootDir": "./src" /* Specify the root folder within your source files. */,
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@types": ["src/types.ts"],
-      "@utils": ["src/utils/index.ts"]
+      "@/*": ["./src/*"],
+      "@types": ["./src/types.ts"],
+      "@utils": ["./src/utils/index.ts"]
     },
     "rewriteRelativeImportExtensions": true /* Rewrite '.ts', '.tsx', '.mts', and '.cts' file extensions in relative import paths to their JavaScript equivalent in output files. */,
     // "resolvePackageJsonExports": true,                /* Use the package.json 'exports' field when resolving package imports. */
