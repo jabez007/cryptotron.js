@@ -76,3 +76,24 @@ jobs:
 
       - name: Deno Publish Dry Run
         run: deno publish --dry-run
+
+  check_package:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Packs the build and loads both entry points with require() and import, and
+      # type-checks them under node10, node16, nodenext, and bundler
+      - name: Check package
+        run: npm run check:package

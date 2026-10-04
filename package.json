@@ -8,16 +8,15 @@
   "main": "./dist/cjs/index.js",
   "scripts": {
     "test": "cross-env TSX_TSCONFIG_PATH='./tsconfig.test.json' mocha",
-    "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json",
+    "build:cjs": "tsc --project tsconfig.commonjs.json && tsc-alias -p tsconfig.commonjs.json && node -e \"require('fs').writeFileSync('dist/cjs/package.json', JSON.stringify({ type: 'commonjs' }))\"",
     "build:esm": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
-    "build:types": "tsc -p tsconfig.types.json",
     "build": "npm run build:cjs && npm run build:esm",
     "prepublishOnly": "npm run build",
     "clean": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true })\"",
     "prebuild": "npm run clean",
-    "postbuild": "npm run build:types",
     "lint": "eslint . --ext .ts,.js --fix",
-    "lint:check": "eslint . --ext .ts,.js"
+    "lint:check": "eslint . --ext .ts,.js",
+    "check:package": "npm run build && node scripts/check-package.mjs"
   },
   "keywords": [
     "cryptography",
@@ -63,17 +62,34 @@
     "typescript": "^5.8.3"
   },
   "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/cjs/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./lite": {
-      "types": "./dist/types/lite.d.ts",
-      "import": "./dist/esm/lite.js",
-      "require": "./dist/cjs/lite.js"
+      "import": {
+        "types": "./dist/esm/lite.d.ts",
+        "default": "./dist/esm/lite.js"
+      },
+      "require": {
+        "types": "./dist/cjs/lite.d.ts",
+        "default": "./dist/cjs/lite.js"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "lite": [
+        "./dist/cjs/lite.d.ts"
+      ]
     }
   },
   "files": [

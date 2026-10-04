@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "target": "es2023",
     "outDir": "./dist/esm",
-    "declaration": false,
-    "declarationMap": false
+    "declaration": true,
+    "declarationMap": true
   }
 }
