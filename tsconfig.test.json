@@ -11,11 +11,10 @@
       "mocha"
     ],
     "sourceMap": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@types": ["src/types.ts"],
-      "@utils": ["src/utils/index.ts"]
+      "@/*": ["./src/*"],
+      "@types": ["./src/types.ts"],
+      "@utils": ["./src/utils/index.ts"]
     },
     "esModuleInterop": true
   },
